@@ -1,2 +1,3 @@
-from .client import Client
-from .errors import InvalidToken
+from .client import *
+from .errors import *
+from .message import *

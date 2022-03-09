@@ -1,23 +1,47 @@
 import asyncio
+import json
 import sys
-import threading
 
-from aiohttp import ClientSession, ClientWebSocketResponse, WSMsgType
-from typing import Optional, Dict, Any
+from aiohttp import ClientSession, ClientWebSocketResponse, WSMessage, WSMsgType
+from enum import Enum
+from typing import Any, Dict, Optional, List, Callable, Awaitable, TypeVar
 
-from .utils import _to_json
-from .errors import InvalidToken
+from .errors import InvalidToken, InvalidFunction
+from .message import Message
 
 
-GATEWAY_URL = "wss://gateway.discord.gg/?v=9&encoding=json"
+__all__ = (
+    "Client",
+)
 
+
+class OPCODES(Enum):
+    """Discord OP Codes"""
+
+    DISPATCH = 0
+    HEARTBEAT = 1
+    IDENTIFY = 2
+    PRESENCE_UPDATE = 3
+    VOICE_STATE_UPDATE = 4
+    RESUME = 6
+    RECONNECT = 7
+    REQUEST_GUILD_MEMBERS = 8
+    INVALID_SESSION = 9
+    HELLO = 10
+    HEARTBEAT_ACK = 11
+
+OnT = TypeVar("OnT", bound=Callable[..., Awaitable])
+
+EVENT_CONVERTERS = {
+    'MESSAGE_CREATE': Message
+}
 
 class Client:
     """
-    represents a discord client that
-    handles interactions with the discord 
+    Represents a discord client that
+    handles interactions with the discord
     api in the form of a websocket which
-    entails sending websockets, receiving 
+    entails sending websockets, receiving
     events and then dispatching them.
     """
 
@@ -25,16 +49,38 @@ class Client:
         self._session: ClientSession
         self._ws: ClientWebSocketResponse
         self._loop = asyncio.AbstractEventLoop
+        self._events: Dict[str, Any] = {}
+
+    def on(self, event_name: str) -> Callable[[OnT], OnT]:
+        """
+        A function used to decorate event
+        functions with to declare them
+        as an event.
+
+        Parameters
+        ----------
+        event_name: :class:`str`
+            the event to assign the
+            function to.
+        """
+
+        def decorator(func) -> OnT:
+            if not asyncio.iscoroutinefunction(func):
+                raise InvalidFunction("Your event must be asynchronous.")
+            self._events[event_name] = func
+            return func
+
+        return decorator
 
     async def identify(self, token: str) -> None:
         """
-        sends the IDENTIFY payload to the
-        websocket connection.
+        Sends the IDENTIFY payload to the
+        websocket connection to identify
+        the client user.
         """
-        await self._ws.send_str(
-            _to_json(
+        await self._ws.send_json(
             {
-                "op": 2,
+                "op": OPCODES.IDENTIFY.value,
                 "d": {
                     "token": token,
                     "intents": 513,
@@ -45,24 +91,81 @@ class Client:
                     },
                 },
             }
-            )
         )
 
-    async def poll_event(self) -> None:
+    async def _parse_event(self, _message: WSMessage) -> bool:
         """
-        Gets an event from the websocket
+        Parses an event message.
+
+        Parameters
+        ----------
+        message: :class:`WSMessage`
+            The message passed through.
         """
 
-        _message = await self._ws.receive()
-        _message_json = _to_json(_message)
-        
+        try:
+            _data = json.loads(_message.data)
+        except TypeError:
+            print(_message)
+            return False
 
-        print(_message)
+        # print(_data)
+        # print("\n\n\n")
+
+        if _message.type is WSMsgType.TEXT and _data["op"] == OPCODES.HEARTBEAT_ACK.value:
+            return
         if _message.type is WSMsgType.CLOSED:
             return False
-        print("\n\n\n")
+        if _message.type is WSMsgType.TEXT and _data["op"] == OPCODES.HELLO.value:
+            self._heartbeat_interval = _data["d"]["heartbeat_interval"] / 1000
 
-    async def start(self, token: str, *, session: Optional[ClientSession] = None, loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
+        await self.dispatch(_data["t"], _data["d"])
+        self._ws.sequence += 1
+
+    async def dispatch(self, _name: str, _raw_data: Dict[Any, Any]) -> None:
+        """
+        Dispatches the event received from
+        the websocket and calls the coroutine
+        which has been registered to that
+        certain event.
+
+        Parameters
+        ----------
+        name: :class:`str`
+            The name of the event to call.
+        data: :class:`Dict[Any, Any]`
+            The data passed by the discord
+            gateway into the message.
+        """
+
+        if _name not in self._events:
+            return
+
+        coro = self._events[_name]   
+
+        if _name in EVENT_CONVERTERS:
+            data = EVENT_CONVERTERS[_name](_raw_data)
+        else:
+            data = _raw_data
+
+        await coro(data)
+
+    async def keep_alive(self) -> None:
+        """
+        Keeps the bot alive which entails
+        sending a heartbeat every _ seconds
+        to tell the websocket that we're still
+        up and running.
+        """ 
+
+        while True:
+            data = {"op": OPCODES.HEARTBEAT.value, "d": self._ws.sequence}
+            await self._ws.send_json(data)
+            await asyncio.sleep(self._heartbeat_interval)
+
+    async def start(
+        self, token: str, *, session: Optional[ClientSession] = None, loop: Optional[asyncio.AbstractEventLoop] = None
+    ) -> None:
         """
         Starts the bot.
 
@@ -81,60 +184,15 @@ class Client:
             raise InvalidToken("Make sure you enter a valid bot token instead of ``{}``".format(token))
 
         self._session = session or ClientSession()
-        self._ws = await self._session.ws_connect(GATEWAY_URL)
+        self._loop = loop or asyncio.get_running_loop()
+        self._ws = await self._session.ws_connect("wss://gateway.discord.gg/?v=9&encoding=json")
+        self._ws.sequence = 0
 
-        await self.poll_event()
-        await self.identify(token) 
+        _message = await self._ws.receive()
+        await self._parse_event(_message)
+        await self.identify(token)
 
-        while True:
-            status = await self.poll_event()
-            if status is False:
-                return
+        self._loop.create_task(self.keep_alive())
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# async def main():
-#     session = ClientSession()
-#     ws = await session.ws_connect(GATEWAY_URL)
-#     await ws.send_str(_to_json(IDENTIFY_PAYLOAD))
-
-#     num = 0
-#     while True:
-#         msg = await ws.receive()
-#         num += 1
-#         print(msg)
-#         msg_json = json.loads(msg.data)
-
-#         # if num == 4:
-#         #     return await session.close()
-#         if msg_json["t"] == "GUILD_CREATE":
-#             num -= 1
-#             continue
-
-#         # print(str(msg_json) + "\n\n\n\n")
-
-#         if msg.type is WSMsgType.CLOSE:
-#             print(str(msg) + " :(")
-#         if msg.type is WSMsgType.CLOSED:
-#             return
+        async for message in self._ws:
+            await self._parse_event(message)
