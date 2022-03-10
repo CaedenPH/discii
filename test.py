@@ -1,19 +1,19 @@
 import asyncio
 import os
-import disci
+import discii
 
 from dotenv import load_dotenv
 
-client = disci.Client()
+client = discii.Client()
 
 
 @client.on("READY")
-async def ready(raw_data):
+async def ready():
     print("the client is connected and ready")
 
 
 @client.on("MESSAGE_CREATE")
-async def message(message: disci.Message):
+async def message(message: discii.Message):
     print(message.content)
 
 

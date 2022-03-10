@@ -4,7 +4,7 @@ import sys
 
 from aiohttp import ClientSession, ClientWebSocketResponse, WSMessage, WSMsgType
 from enum import Enum
-from typing import Any, Dict, Optional, List, Callable, Awaitable, TypeVar
+from typing import Any, Dict, Optional, List, Callable, Awaitable, Tuple, TypeVar
 
 from .errors import InvalidToken, InvalidFunction
 from .message import Message
@@ -33,7 +33,8 @@ class OPCODES(Enum):
 OnT = TypeVar("OnT", bound=Callable[..., Awaitable])
 
 EVENT_CONVERTERS = {
-    'MESSAGE_CREATE': Message
+    'READY': ...,
+    'MESSAGE_CREATE': Message,
 }
 
 class Client:
@@ -43,13 +44,26 @@ class Client:
     api in the form of a websocket which
     entails sending websockets, receiving
     events and then dispatching them.
+
+    Attributes
+    ----------
+    _session: :class:`ClientSession`
+        The aiohttp session used to handle
+        the websocket interactions.
+    _ws: :class:`ClientWebSocketResponse`   
+        The websocket that handles all interactions
+        with the discord api.
+    _loop: :class:`asyncio.AbstractEventLoop`
+        The Event Loop used to run all tasks 
+        from.
     """
 
     def __init__(self) -> None:
         self._session: ClientSession
         self._ws: ClientWebSocketResponse
-        self._loop = asyncio.AbstractEventLoop
-        self._events: Dict[str, Any] = {}
+        self._loop: asyncio.AbstractEventLoop
+        self._events: Dict[str, List[OnT]] = {}
+        self._raw_events: Dict[str, List[OnT]] = {}
 
     def on(self, event_name: str) -> Callable[[OnT], OnT]:
         """
@@ -64,19 +78,63 @@ class Client:
             function to.
         """
 
-        def decorator(func) -> OnT:
+        def decorator(func: OnT) -> OnT:
             if not asyncio.iscoroutinefunction(func):
                 raise InvalidFunction("Your event must be asynchronous.")
-            self._events[event_name] = func
+
+            if event_name in self._events:
+                self._events[event_name].append(func)
+            else:
+                self._events[event_name] = [func]
             return func
 
         return decorator
+
+    def raw(self, event_name: str) -> Callable[[OnT], OnT]:
+        """
+        A function used to decorate event
+        functions with to declare them
+        as a raw event which means only
+        raw data is sent.
+
+        Parameters
+        ----------
+        event_name: :class:`str`
+            the event to assign the
+            function to.
+        """
+
+        def decorator(func: OnT) -> OnT:
+            if not asyncio.iscoroutinefunction(func):
+                raise InvalidFunction("Your event must be asynchronous.")
+
+            if event_name in self._raw_events:
+                self._raw_events[event_name].append(func)
+            else:
+                self._raw_events[event_name] = [func]
+            return func
+
+        return decorator
+
+    def increment_sequence(self) -> None:
+        """
+        Handles the managing of
+        `_ws.sequence` by incrementing
+        the sequence value.
+        """
+        self._ws.sequence += 1
 
     async def identify(self, token: str) -> None:
         """
         Sends the IDENTIFY payload to the
         websocket connection to identify
         the client user.
+
+        Parameters
+        ----------
+        token: :class:`str`
+            The bot token used to identify
+            in the payload.
         """
         await self._ws.send_json(
             {
@@ -119,8 +177,11 @@ class Client:
         if _message.type is WSMsgType.TEXT and _data["op"] == OPCODES.HELLO.value:
             self._heartbeat_interval = _data["d"]["heartbeat_interval"] / 1000
 
-        await self.dispatch(_data["t"], _data["d"])
-        self._ws.sequence += 1
+        self.increment_sequence()
+        await self.dispatch(
+            _name=_data["t"], 
+            _raw_data=_data["d"]
+        )
 
     async def dispatch(self, _name: str, _raw_data: Dict[Any, Any]) -> None:
         """
@@ -140,15 +201,6 @@ class Client:
 
         if _name not in self._events:
             return
-
-        coro = self._events[_name]   
-
-        if _name in EVENT_CONVERTERS:
-            data = EVENT_CONVERTERS[_name](_raw_data)
-        else:
-            data = _raw_data
-
-        await coro(data)
 
     async def keep_alive(self) -> None:
         """

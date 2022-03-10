@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from .member import Member
+
 class Message:
     """
     Represents a discord message.
