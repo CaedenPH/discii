@@ -1,4 +1,9 @@
+import asyncio
+
+from aiohttp import ClientSession
+
 from .errors import InvalidBotToken
+from .http import HTTPClient
 
 
 __all__ = ("Client",)
@@ -10,7 +15,7 @@ class Client:
     the discord api and manages websocket connections.
     """
 
-    async def start(self, token: str) -> None:
+    async def start(self, token: str, *, session: ClientSession = None, loop: asyncio.AbstractEventLoop = None) -> None:
         """
         Starts the client.
 
@@ -18,9 +23,14 @@ class Client:
         ----------
         token: :class:`str`
             The bot token to start the client with.
+        session: :class:`ClientSession`
+            The user-inputted session in case the user
+            has a pre-defined customized session.
         """
 
         if not isinstance(token, str) or len(token) != 59:
             raise InvalidBotToken("Make sure you enter a valid bot token instead of ``{}``".format(token))
 
-    
+        session = session or ClientSession()
+        loop = loop or asyncio.get_running_loop()
+        self.http = HTTPClient(token=token, session=session, loop=loop)
