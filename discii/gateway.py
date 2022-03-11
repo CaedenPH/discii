@@ -4,11 +4,41 @@ import asyncio
 import sys
 import aiohttp
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from .http import HTTPClient
+if TYPE_CHECKING:
+    from .http import HTTPClient
 
-__all__ = ("DiscordWebSocket",)
+__all__ = (
+    "Route",
+    "DiscordWebSocket",
+)
+
+
+class Route:
+    """
+    Represents an api route which contains
+    information about the call, including
+    method and path.
+
+    Parameters
+    ----------
+    method: :class:`str`
+        The method to send to the api.
+    path: :class:`str`
+        The api path to send the data to.
+
+    Attributes
+    ----------
+    BASE_URL: :class:`str`
+        The base api url.
+    """
+
+    BASE_URL = "https://discord.com/api/v9"
+
+    def __init__(self, method: str, path: str) -> None:
+        self.method = method
+        self.path = self.BASE_URL + path
 
 
 class DiscordWebSocket:
@@ -49,6 +79,8 @@ class DiscordWebSocket:
         Send only. Requests a guild sync.
     token
         The authentication token for the discord api.
+    _heartbeat_interval
+        The seconds to wait before sending another heartbeat.
     """
 
     # fmt: off
@@ -78,13 +110,13 @@ class DiscordWebSocket:
         self.sequence: Optional[float] = None
 
     @classmethod
-    async def from_client(cls, *, http: HTTPClient, loop: asyncio.AbstractEventLoop) -> DiscordWebSocket:
+    async def from_client(cls, http: HTTPClient) -> DiscordWebSocket:
         socket = await http.ws_connect("wss://gateway.discord.gg/?v=9&encoding=json")
         self = cls(socket=socket, loop=http.loop)
         return self
 
     async def identify(self) -> None:
-        """Send the IDENTIFY payload to the api."""
+        """Sends the IDENTIFY payload to the api."""
         return await self.socket.send_json(
             {
                 "op": self.IDENTIFY,
