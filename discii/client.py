@@ -34,7 +34,13 @@ class Client:
         self.http: HTTPClient
         self.ws: DiscordWebSocket
 
-    async def start(self, token: str, *, session: ClientSession = None, loop: asyncio.AbstractEventLoop = None) -> None:
+    async def start(
+        self,
+        token: str,
+        *,
+        session: ClientSession = None,
+        loop: asyncio.AbstractEventLoop = None
+    ) -> None:
         """
         Starts the client.
 
@@ -44,13 +50,17 @@ class Client:
             The bot token to start the client with.
         session: :class:`ClientSession`
             The user-inputted session in case the user
-            has a pre-defined customized session.
+            has a pre-defined session.
         """
 
         if not isinstance(token, str) or len(token) != 59:
-            raise InvalidBotToken("Make sure you enter a valid bot token instead of ``{}``".format(token))
+            raise InvalidBotToken(
+                "Make sure you enter a valid bot token instead of ``{}``".format(token)
+            )
 
         self.loop = loop or asyncio.get_running_loop()
         session = session or ClientSession()
         self.http = HTTPClient(token=token, session=session, loop=self.loop)
         self.ws = await DiscordWebSocket.from_client(self.http)
+
+        await self.ws.start()

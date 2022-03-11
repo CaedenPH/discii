@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
-import aiohttp
 
-from typing import Optional, TYPE_CHECKING
+from aiohttp import ClientWebSocketResponse, WSMsgType, WSMessage
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .http import HTTPClient
@@ -102,17 +103,22 @@ class DiscordWebSocket:
     token: str
     _heartbeat_interval: float
 
-    def __init__(self, *, socket: aiohttp.ClientWebSocketResponse, loop: asyncio.AbstractEventLoop) -> None:
-        self.socket: aiohttp.ClientWebSocketResponse = socket
+    def __init__(
+        self, *, socket: ClientWebSocketResponse, loop: asyncio.AbstractEventLoop
+    ) -> None:
+        self.socket: ClientWebSocketResponse = socket
         self.loop: asyncio.AbstractEventLoop = loop
 
+        self.sequence: int = 0
         self.session_id: Optional[str] = None
-        self.sequence: Optional[float] = None
 
     @classmethod
     async def from_client(cls, http: HTTPClient) -> DiscordWebSocket:
         socket = await http.ws_connect("wss://gateway.discord.gg/?v=9&encoding=json")
+
         self = cls(socket=socket, loop=http.loop)
+        self.token = http.token
+
         return self
 
     async def identify(self) -> None:
@@ -123,7 +129,64 @@ class DiscordWebSocket:
                 "d": {
                     "token": self.token,
                     "intents": 513,
-                    "properties": {"$os": sys.platform, "$browser": "my_library", "$device": "my_library"},
+                    "properties": {
+                        "$os": sys.platform,
+                        "$browser": "my_library",
+                        "$device": "my_library",
+                    },
                 },
             }
         )
+
+    async def keep_alive(self) -> None:
+        """
+        Keeps the bot alive by
+        sending a heartbeat every 30
+        seconds.
+        """
+        while True:
+            await self.socket.send_json({"op": self.HEARTBEAT, "d": self.sequence})
+            await asyncio.sleep(self._heartbeat_interval)
+
+    async def _parse_message(self, message_data: Dict[Any, Any]) -> None:
+        """
+        Parses the message data
+
+        Parameters
+        ----------
+        message_data: :class:`Dict[Any, Any]`
+            The data passed through.
+        """
+
+        if message_data["op"] == self.DISPATCH:
+            self.sequence += 1
+
+        if message_data["op"] == self.HEARTBEAT_ACK:
+            return
+        if message_data["op"] == self.DISPATCH and message_data["t"] == "GUILD_CREATE":
+            return  # TODO: cache all guilds
+
+        if message_data["op"] == self.HELLO:
+            await self.identify()
+
+            self._heartbeat_interval = message_data["d"]["heartbeat_interval"] / 1000
+            self.loop.create_task(self.keep_alive())
+
+        if not (
+            message_data["op"] == self.DISPATCH and message_data["t"] == "GUILD_CREATE"
+        ):
+            print(self.sequence)
+            print(message_data)
+
+    async def start(self) -> None:
+        """
+        Starts listening in to events being sent
+        from the gateway. Sends IDENTIFY payload.
+        """
+
+        async for message in self.socket:  # type: WSMessage
+            if message.type is WSMsgType.TEXT:
+                await self._parse_message(json.loads(message.data))
+            else:
+                print(f"\n\n\n\n\n W H A T {message}")
+                return
