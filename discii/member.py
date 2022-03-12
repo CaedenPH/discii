@@ -5,14 +5,14 @@ if TYPE_CHECKING:
 
 # fmt: off
 __all__ = (
-    'Message'
+    'Member'
 )
 # fmt: on
 
 
-class Message:
+class Member:
     """
-    Represents a discord message.
+    Represents a discord member.
 
     Parameters
     ----------

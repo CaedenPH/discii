@@ -5,14 +5,16 @@ if TYPE_CHECKING:
 
 # fmt: off
 __all__ = (
-    'Message'
+    'Channel',
+    'TextChannel',
+    'DMChannel',
 )
 # fmt: on
 
 
-class Message:
+class Channel:
     """
-    Represents a discord message.
+    The base class for all channels.
 
     Parameters
     ----------
@@ -26,3 +28,15 @@ class Message:
     def __init__(self, *, payload: Dict[Any, Any], client_state: "ClientState") -> None:
         self._raw_payload = payload
         self._client_state = client_state
+
+
+class TextChannel(Channel):
+    """
+    Represents a discord text channel
+    """
+
+
+class DMChannel(TextChannel):
+    """
+    Represents a discord dm channel.
+    """

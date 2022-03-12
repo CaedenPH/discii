@@ -16,6 +16,14 @@ class ClientState:
     """
     Represents a State with all the properties
     of `Client`.
+
+    Parameters
+    ----------
+    http: :class:`HTTPClient`
+        The http client which all requests
+        are sent through.
+    ws: :class:`DiscordWebSocket`
+        The websocket connected to the gateway.
     """
 
     def __init__(self, *, http: "HTTPClient", ws: "DiscordWebSocket") -> None:
