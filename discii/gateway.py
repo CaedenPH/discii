@@ -192,7 +192,6 @@ class DiscordWebSocket:
             await self.client.dispatch(message_data["t"], data)
 
         if not (op == self.DISPATCH and message_data["t"] == "GUILD_CREATE"):
-            return
             print(message_data)  # debugging
 
     async def listen(self) -> None:

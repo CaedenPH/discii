@@ -8,8 +8,13 @@ client = discii.Client()
 
 
 @client.on("READY")
-async def bot_ready(e) -> None:
+async def bot_ready() -> None:
     print(f"The client is ready. The client's latency is {round(client.latency * 1000)}s")
+
+
+@client.on("MESSAGE_CREATE")
+async def on_message(message):
+    print(message)
 
 
 @client.error

@@ -5,7 +5,7 @@ from typing import Any, Dict, List, TypeVar, Callable, Coroutine
 
 from aiohttp import ClientSession
 
-from .converters import _event_to_state
+from .converters import _event_to_object
 from .errors import InvalidBotToken, InvalidFunction
 from .gateway import DiscordWebSocket
 from .http import HTTPClient
@@ -108,7 +108,7 @@ class Client:
         """
 
         client_state = self._get_state()
-        state = _event_to_state(name, data, client_state)
+        state = _event_to_object(name, data, client_state)
         if state is None:
             return ()
         return state

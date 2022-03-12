@@ -1,13 +1,12 @@
 from typing import Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from .message import Message
     from .state import ClientState
 
 
-def _event_to_state(name: str, data: Dict[Any, Any], _state: "ClientState") -> Any:
-    _event_converters = {
-        "READY": None,
-    }
+def _event_to_object(name: str, data: Dict[Any, Any], _state: "ClientState") -> Any:
+    _event_converters: Dict[str, Any] = {"READY": None, "MESSAGE": Message}
 
     if name not in _event_converters:
         return None
