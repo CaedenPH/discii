@@ -3,9 +3,12 @@ from typing import Any, Dict, List, TypeVar, Callable, Coroutine
 
 from aiohttp import ClientSession
 
+from .converters import _event_to_state
 from .errors import InvalidBotToken, InvalidFunction
 from .gateway import DiscordWebSocket
 from .http import HTTPClient
+from .state import ClientState
+
 
 # fmt: off
 __all__ = (
@@ -59,6 +62,7 @@ class Client:
             if not asyncio.iscoroutinefunction(func):
                 raise InvalidFunction("Your event must be a coroutine.")
 
+            func.__raw = raw
             if event_name in self.events:
                 self.events[event_name].append(func)
             else:
@@ -66,6 +70,46 @@ class Client:
             return func
 
         return inner
+
+    def _get_state(self) -> ClientState:
+        return ClientState(http=self.http, ws=self.ws)
+
+    def _parse_event_data(self, name: str, data: Dict[Any, Any]) -> Any:
+        """
+        Parses an event with it's data
+
+        Parameters
+        ----------
+        name: :class:`str`
+            The event name to parse.
+        data: :class:`Dict[Any, Any]`
+            The data to parse.
+
+        Returns
+        -------
+        data: :class:`Any`
+            The pretty data to pass into the
+            coro itself.
+        """
+
+        client_state = self._get_state()
+        state = _event_to_state(name, data, client_state)
+        if state is None:
+            return ()
+
+    async def _run_event(self, coro: Coro, *args, **kwargs) -> None:
+        """
+        Runs the event in a localised task.
+
+        Parameters
+        ----------
+        coro: :class:`Coro`
+            The coroutine to run.
+        """
+        try:
+            await coro(*args, **kwargs)
+        except Exception as e:
+            print(e)
 
     async def dispatch(self, name: str, data: Dict[Any, Any]) -> None:
         """
@@ -81,6 +125,10 @@ class Client:
 
         if name not in self.events:
             return
+
+        for coro in self.events[name]:
+            args = self._parse_event_data(name, data) if not coro.__raw else data
+            self.loop.create_task(self._run_event(coro, *args))
 
     async def start(
         self,
