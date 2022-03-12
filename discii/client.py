@@ -161,3 +161,8 @@ class Client:
         self.ws = await DiscordWebSocket.from_client(self)
 
         await self.ws.listen()  # blocking to keep code running.
+
+    @property
+    def latency(self) -> float:
+        """Returns the client latency"""
+        return self.ws.latency

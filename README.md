@@ -14,7 +14,7 @@ A test discord wrapper.
 >
 > @client.on("READY")
 > async def bot_ready() -> None:
->     print("The bot is ready.")
+>     print(f"The client is ready. The client's latency is {round(client.latency * 1000)}s")
 >
 >
 > if __name__ == "__main__":

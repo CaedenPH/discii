@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
+import time
 
 from aiohttp import ClientWebSocketResponse, WSMsgType, WSMessage
 from typing import Any, Dict, Optional, TYPE_CHECKING
@@ -104,6 +105,7 @@ class DiscordWebSocket:
 
     token: str
     _heartbeat_interval: float
+    _last_heartbeat: float
 
     def __init__(
         self,
@@ -118,6 +120,7 @@ class DiscordWebSocket:
 
         self.session_id: Optional[str] = None
         self.sequence: int = 0
+        self.latency: float = 0
 
     @classmethod
     async def from_client(cls, client: "Client") -> DiscordWebSocket:
@@ -154,6 +157,7 @@ class DiscordWebSocket:
         """
         while True:
             await self.socket.send_json({"op": self.HEARTBEAT, "d": self.sequence})
+            self._last_heartbeat = time.perf_counter()
             await asyncio.sleep(self._heartbeat_interval)
 
     async def _parse_message(self, message_data: Dict[Any, Any]) -> None:
@@ -170,6 +174,7 @@ class DiscordWebSocket:
         data = message_data["d"]
 
         if op == self.HEARTBEAT_ACK:
+            self.latency = time.perf_counter() - self._last_heartbeat
             return
         if op == self.DISPATCH and message_data["t"] == "GUILD_CREATE":
             return  # TODO: cache all guilds
