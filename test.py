@@ -14,7 +14,7 @@ async def bot_ready() -> None:
 
 @client.on("MESSAGE_CREATE")
 async def on_message(message: discii.Message):
-    print(message)
+    print(f"Message detected. Message content: {message.content}")
 
 
 @client.error

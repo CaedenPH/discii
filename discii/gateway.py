@@ -9,6 +9,7 @@ from aiohttp import ClientWebSocketResponse, WSMsgType
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from .guild import Guild
+from .message import Message
 
 if TYPE_CHECKING:
     from .cache import Cache
@@ -17,36 +18,9 @@ if TYPE_CHECKING:
 
 # fmt: off
 __all__ = (
-    'Route',
     'DiscordWebSocket',
 )
 # fmt: on
-
-
-class Route:
-    """
-    Represents an api route which contains
-    information about the call, including
-    method and path.
-
-    Parameters
-    ----------
-    method: :class:`str`
-        The method to send to the api.
-    path: :class:`str`
-        The api path to send the data to.
-
-    Attributes
-    ----------
-    BASE_URL: :class:`str`
-        The base api url.
-    """
-
-    BASE_URL = "https://discord.com/api/v9"
-
-    def __init__(self, method: str, path: str) -> None:
-        self.method = method
-        self.path = self.BASE_URL + path
 
 
 class DiscordWebSocket:
@@ -169,41 +143,50 @@ class DiscordWebSocket:
             self._last_heartbeat = time.perf_counter()
             await asyncio.sleep(self._heartbeat_interval)
 
-    async def _parse_message(self, message_data: Dict[Any, Any]) -> None:
+    def _cache_event(self, name: str, data: Dict[Any, Any]) -> None:
+        if name == "GUILD_CREATE":
+            guild = Guild(payload=data, state=self.state)
+            self.cache.add_guild(guild)
+        if name == "MESSAGE_CREATE":
+            message = Message(payload=data, state=self.state)
+            self.cache.add_message(message)
+            print(self.cache._messages)
+        print(data)
+
+    async def _parse_message(self, payload: Dict[Any, Any]) -> None:
         """
         Parses the message data
 
         Parameters
         ----------
-        message_data: :class:`Dict[Any, Any]`
+        payload: :class:`Dict[Any, Any]`
             The raw message data passed through.
         """
 
-        op = message_data["op"]
-        data = message_data["d"]
+        op = payload["op"]
+        t = payload["t"]
+        d = payload["d"]
 
         if op == self.HEARTBEAT_ACK:
             self.latency = time.perf_counter() - self._last_heartbeat
             return
-        if op == self.DISPATCH and message_data["t"] == "GUILD_CREATE":
-            guild = Guild(payload=message_data["d"], state=self.state)
-            self.cache.add_guild(guild)
-            return
 
-        if op == self.DISPATCH and message_data["t"] == "READY":
-            self.session_id = data["session_id"]
+        if op == self.DISPATCH and t == "READY":
+            self.session_id = d["session_id"]
 
         if op == self.HELLO:
             await self.identify()
-            self._heartbeat_interval = data["heartbeat_interval"] / 1000
+            self._heartbeat_interval = d["heartbeat_interval"] / 1000
             self.loop.create_task(self.keep_alive())
 
         if op == self.DISPATCH:
             self.sequence += 1
-            await self.client.dispatch(message_data["t"], data)
+            await self.client.dispatch(t, d)
+
+        self._cache_event(t, d)
 
         return
-        print(message_data)  # debugging
+        print(payload)  # debugging
 
     async def listen(self) -> None:
         """

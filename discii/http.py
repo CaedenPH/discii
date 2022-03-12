@@ -7,13 +7,39 @@ from aiohttp import ClientSession, ClientWebSocketResponse
 from typing import Dict, Any
 
 from . import __version__
-from .gateway import Route
 
 # fmt: off
 __all__ = (
     'HTTPClient',
+    'Route'
 )
 # fmt: on
+
+
+class Route:
+    """
+    Represents an api route which contains
+    information about the call, including
+    method and path.
+
+    Parameters
+    ----------
+    method: :class:`str`
+        The method to send to the api.
+    path: :class:`str`
+        The api path to send the data to.
+
+    Attributes
+    ----------
+    BASE_URL: :class:`str`
+        The base api url.
+    """
+
+    BASE_URL = "https://discord.com/api/v9"
+
+    def __init__(self, method: str, path: str) -> None:
+        self.method = method
+        self.path = self.BASE_URL + path
 
 
 class HTTPClient:
