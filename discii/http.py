@@ -88,4 +88,4 @@ class HTTPClient:
         kwargs["headers"] = headers
 
         async with self._session.request(route.method, route.path, **kwargs) as req:
-            print(await req.json())
+            return req

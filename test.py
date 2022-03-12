@@ -13,8 +13,9 @@ async def bot_ready() -> None:
 
 
 @client.on("MESSAGE_CREATE")
-async def on_message(message):
+async def on_message(message: discii.Message):
     print(message)
+    await message.delete()
 
 
 @client.error

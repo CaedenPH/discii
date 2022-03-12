@@ -1,5 +1,7 @@
 from typing import Any, Dict, TYPE_CHECKING
 
+from .gateway import Route
+
 if TYPE_CHECKING:
     from .state import ClientState
 
@@ -24,5 +26,27 @@ class Message:
     """
 
     def __init__(self, *, payload: Dict[Any, Any], client_state: "ClientState") -> None:
+        print(payload)
         self._raw_payload = payload
         self._client_state = client_state
+        self._id = payload["id"]
+
+    async def delete(self) -> None:
+        """
+        Deletes the message
+        """
+        route = Route(
+            "DELETE",
+            "/channels/{channel_id}/messages/{message_id}".format(
+                channel_id=self._raw_payload[
+                    "channel_id"
+                ],  # TODO: get from channel cache
+                message_id=self.id,
+            ),
+        )
+        await self._client_state.http.request(route)
+
+    @property
+    def id(self) -> int:
+        """Returns the message id."""
+        return self._id
