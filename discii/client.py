@@ -96,6 +96,7 @@ class Client:
         state = _event_to_state(name, data, client_state)
         if state is None:
             return ()
+        return state
 
     async def _run_event(self, coro: Coro, *args, **kwargs) -> None:
         """
@@ -159,4 +160,4 @@ class Client:
         self.http = HTTPClient(token=token, session=session, loop=self.loop)
         self.ws = await DiscordWebSocket.from_client(self)
 
-        await self.ws.start()
+        await self.ws.listen()  # blocking to keep code running.

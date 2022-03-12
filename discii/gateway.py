@@ -130,7 +130,7 @@ class DiscordWebSocket:
         return self
 
     async def identify(self) -> None:
-        """Sends the IDENTIFY payload to the api."""
+        """Sends the IDENTIFY payload through the websocket."""
         return await self.socket.send_json(
             {
                 "op": self.IDENTIFY,
@@ -163,7 +163,7 @@ class DiscordWebSocket:
         Parameters
         ----------
         message_data: :class:`Dict[Any, Any]`
-            The data passed through.
+            The raw message data passed through.
         """
 
         op = message_data["op"]
@@ -189,7 +189,7 @@ class DiscordWebSocket:
         if not (op == self.DISPATCH and message_data["t"] == "GUILD_CREATE"):
             print(message_data)  # debugging
 
-    async def start(self) -> None:
+    async def listen(self) -> None:
         """
         Starts listening in to events being sent
         from the gateway. Sends IDENTIFY payload.

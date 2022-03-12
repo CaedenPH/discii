@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from .state import ClientState
 
 
-def _event_to_state(name: str, data: Dict[Any, Any], client_state: "ClientState") -> Any:
+def _event_to_state(name: str, data: Dict[Any, Any], _state: "ClientState") -> Any:
     _event_converters = {
         "READY": None,
     }
@@ -15,3 +15,6 @@ def _event_to_state(name: str, data: Dict[Any, Any], client_state: "ClientState"
     converter = _event_converters[name]
     if converter is None:
         return None
+
+    state = converter(payload=data, state=_state)
+    return state

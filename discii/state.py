@@ -4,6 +4,7 @@ if TYPE_CHECKING:
     from .http import HTTPClient
     from .gateway import DiscordWebSocket
 
+
 # fmt: off
 __all__ = (
     'ClientState',
@@ -12,6 +13,11 @@ __all__ = (
 
 
 class ClientState:
+    """
+    Represents a State with all the properties
+    of `Client`.
+    """
+
     def __init__(self, *, http: "HTTPClient", ws: "DiscordWebSocket") -> None:
         self.http = http
         self.loop = http.loop
