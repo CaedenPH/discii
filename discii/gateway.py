@@ -8,12 +8,14 @@ from aiohttp import ClientWebSocketResponse, WSMsgType, WSMessage
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .http import HTTPClient
+    from .client import Client
 
+# fmt: off
 __all__ = (
-    "Route",
-    "DiscordWebSocket",
+    'Route',
+    'DiscordWebSocket',
 )
+# fmt: on
 
 
 class Route:
@@ -104,19 +106,25 @@ class DiscordWebSocket:
     _heartbeat_interval: float
 
     def __init__(
-        self, *, socket: ClientWebSocketResponse, loop: asyncio.AbstractEventLoop
+        self,
+        *,
+        client: "Client",
+        socket: ClientWebSocketResponse,
+        loop: asyncio.AbstractEventLoop,
     ) -> None:
+        self.client: Client = client
         self.socket: ClientWebSocketResponse = socket
         self.loop: asyncio.AbstractEventLoop = loop
 
-        self.sequence: int = 0
         self.session_id: Optional[str] = None
+        self.sequence: int = 0
 
     @classmethod
-    async def from_client(cls, http: HTTPClient) -> DiscordWebSocket:
+    async def from_client(cls, client: "Client") -> DiscordWebSocket:
+        http = client.http
         socket = await http.ws_connect("wss://gateway.discord.gg/?v=9&encoding=json")
 
-        self = cls(socket=socket, loop=http.loop)
+        self = cls(client=client, socket=socket, loop=http.loop)
         self.token = http.token
 
         return self
@@ -158,25 +166,28 @@ class DiscordWebSocket:
             The data passed through.
         """
 
-        if message_data["op"] == self.DISPATCH:
-            self.sequence += 1
+        op = message_data["op"]
+        data = message_data["d"]
 
-        if message_data["op"] == self.HEARTBEAT_ACK:
+        if op == self.HEARTBEAT_ACK:
             return
-        if message_data["op"] == self.DISPATCH and message_data["t"] == "GUILD_CREATE":
+        if op == self.DISPATCH and message_data["t"] == "GUILD_CREATE":
             return  # TODO: cache all guilds
 
-        if message_data["op"] == self.HELLO:
-            await self.identify()
+        if op == self.DISPATCH and message_data["t"] == "READY":
+            self.session_id = data["session_id"]
 
-            self._heartbeat_interval = message_data["d"]["heartbeat_interval"] / 1000
+        if op == self.HELLO:
+            await self.identify()
+            self._heartbeat_interval = data["heartbeat_interval"] / 1000
             self.loop.create_task(self.keep_alive())
 
-        if not (
-            message_data["op"] == self.DISPATCH and message_data["t"] == "GUILD_CREATE"
-        ):
-            print(self.sequence)
-            print(message_data)
+        if op == self.DISPATCH:
+            self.sequence += 1
+            await self.client.dispatch(message_data["t"], data)
+
+        if not (op == self.DISPATCH and message_data["t"] == "GUILD_CREATE"):
+            print(message_data)  # debugging
 
     async def start(self) -> None:
         """

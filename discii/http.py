@@ -9,8 +9,11 @@ from typing import Dict, Any
 from . import __version__
 from .gateway import Route
 
-
-__all__ = ("HTTPClient",)
+# fmt: off
+__all__ = (
+    'HTTPClient',
+)
+# fmt: on
 
 
 class HTTPClient:

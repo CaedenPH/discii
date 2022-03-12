@@ -4,8 +4,12 @@ import discii
 
 from dotenv import load_dotenv
 
-
 client = discii.Client()
+
+
+@client.on("READY")
+async def bot_ready() -> None:
+    print("The bot is ready.")
 
 
 if __name__ == "__main__":
