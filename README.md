@@ -16,6 +16,9 @@ A test discord wrapper.
 > async def bot_ready() -> None:
 >     print(f"The client is ready. The client's latency is {round(client.latency * 1000)}s")
 >
+> @client.error
+> async def error_handler(coro, error) -> None:
+>    print(coro, error)
 >
 > if __name__ == "__main__":
 >     load_dotenv()
