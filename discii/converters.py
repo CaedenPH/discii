@@ -16,5 +16,5 @@ def _event_to_object(name: str, data: Dict[Any, Any], _state: "ClientState") -> 
     if converter is None:
         return None
 
-    state = converter(payload=data, client_state=_state)
+    state = converter(payload=data, state=_state)
     return (state,)

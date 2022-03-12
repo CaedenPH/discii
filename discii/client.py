@@ -50,7 +50,7 @@ class Client:
         self.events: Dict[str, List[Callable[..., Coroutine[Any, Any, Any]]]] = {}
         self.error_handlers: Dict[str, Callable[..., Coroutine[Any, Any, Any]]] = {}
 
-    def error(self, coro: Coro) -> None:
+    def error(self, coro: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         """
         Decorator to register a global event
         handler.
@@ -109,13 +109,15 @@ class Client:
             coro itself.
         """
 
-        client_state = self._get_state()
-        state = _event_to_object(name, data, client_state)
+        cs = self._get_state()
+        state = _event_to_object(name, data, cs)
         if state is None:
             return ()
         return state
 
-    async def _run_event(self, coro: Coro, *args, **kwargs) -> None:
+    async def _run_event(
+        self, coro: Callable[..., Coroutine[Any, Any, Any]], *args, **kwargs
+    ) -> None:
         """
         Runs the event in a localised task.
 
@@ -129,7 +131,9 @@ class Client:
         except Exception as error:
             await self.on_error(error, coro)
 
-    async def on_error(self, error: Any, coro: Coro) -> None:
+    async def on_error(
+        self, error: Any, coro: Callable[..., Coroutine[Any, Any, Any]]
+    ) -> None:
         if coro.__name__ in self.error_handlers:
             handler = self.error_handlers[coro.__name__]
             return await handler(error)

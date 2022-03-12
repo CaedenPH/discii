@@ -89,7 +89,7 @@ class DiscordWebSocket:
         The authentication token for the discord api.
     _heartbeat_interval
         The seconds to wait before sending another heartbeat.
-    _client_state
+    _cs
         The client state.
     """
 
@@ -112,7 +112,7 @@ class DiscordWebSocket:
     token: str
     _heartbeat_interval: float
     _last_heartbeat: float
-    _client_state: "ClientState"
+    _state: "ClientState"
 
     def __init__(
         self,
@@ -186,7 +186,7 @@ class DiscordWebSocket:
             self.latency = time.perf_counter() - self._last_heartbeat
             return
         if op == self.DISPATCH and message_data["t"] == "GUILD_CREATE":
-            guild = Guild(payload=message_data["d"], client_state=self._client_state)
+            guild = Guild(payload=message_data["d"], state=self.state)
             self.cache.add_guild(guild)
             return
 
@@ -211,7 +211,7 @@ class DiscordWebSocket:
         from the gateway. Sends IDENTIFY payload.
         """
 
-        self._client_state = self.client._get_state()
+        self.state = self.client._get_state()
         async for message in self.socket:
             if message.type is WSMsgType.TEXT:
                 await self._parse_message(json.loads(message.data))

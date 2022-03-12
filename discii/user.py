@@ -19,14 +19,14 @@ class User:
     ----------
     payload: :class:`Dict[Any, Any]`
         The data received from the event.
-    client_state: :class:`ClientState`
+    _state: :class:`ClientState`
         The client state which holds the
         necessary attributes to perform actions.
     """
 
-    def __init__(self, *, payload: Dict[Any, Any], client_state: "ClientState") -> None:
+    def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
-        self._client_state = client_state
+        self._state = state
 
 
 class Member:

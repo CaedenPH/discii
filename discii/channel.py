@@ -20,14 +20,27 @@ class Channel:
     ----------
     payload: :class:`Dict[Any, Any]`
         The data received from the event.
-    client_state: :class:`ClientState`
+    _state: :class:`ClientState`
         The client state which holds the
         necessary attributes to perform actions.
     """
 
-    def __init__(self, *, payload: Dict[Any, Any], client_state: "ClientState") -> None:
+    def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
+        # TODO: parse
         self._raw_payload = payload
-        self._client_state = client_state
+        self._state = state
+        self._id = payload["id"]
+        self._name = payload["name"]
+
+    @property
+    def id(self) -> int:
+        """Returns the channel id"""
+        return self._id
+
+    @property
+    def name(self) -> str:
+        """Returns the channel name"""
+        return self._name
 
 
 class TextChannel(Channel):
