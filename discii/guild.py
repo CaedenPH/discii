@@ -1,18 +1,18 @@
-from typing import Any, Dict, TYPE_CHECKING
+from typing import Dict, Any
 
-if TYPE_CHECKING:
-    from .state import ClientState
+from .state import ClientState
+
 
 # fmt: off
 __all__ = (
-    'Member'
+    'Guild',
 )
 # fmt: on
 
 
-class Member:
+class Guild:
     """
-    Represents a discord member.
+    Represents a discord guild.
 
     Parameters
     ----------
@@ -24,5 +24,6 @@ class Member:
     """
 
     def __init__(self, *, payload: Dict[Any, Any], client_state: "ClientState") -> None:
+        print(payload)
         self._raw_payload = payload
         self._client_state = client_state

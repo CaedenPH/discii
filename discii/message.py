@@ -26,7 +26,6 @@ class Message:
     """
 
     def __init__(self, *, payload: Dict[Any, Any], client_state: "ClientState") -> None:
-        print(payload)
         self._raw_payload = payload
         self._client_state = client_state
         self._id = payload["id"]

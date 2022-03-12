@@ -5,6 +5,7 @@ from typing import Any, Dict, List, TypeVar, Callable, Coroutine
 
 from aiohttp import ClientSession
 
+from .cache import Cache
 from .converters import _event_to_object
 from .errors import InvalidBotToken, InvalidFunction
 from .gateway import DiscordWebSocket
@@ -45,6 +46,7 @@ class Client:
         self.http: HTTPClient
         self.ws: DiscordWebSocket
 
+        self._cache = Cache()
         self.events: Dict[str, List[Callable[..., Coroutine[Any, Any, Any]]]] = {}
         self.error_handlers: Dict[str, Callable[..., Coroutine[Any, Any, Any]]] = {}
 
@@ -87,7 +89,7 @@ class Client:
         return inner
 
     def _get_state(self) -> ClientState:
-        return ClientState(http=self.http, ws=self.ws)
+        return ClientState(http=self.http, ws=self.ws, cache=self._cache)
 
     def _parse_event_data(self, name: str, data: Dict[Any, Any]) -> Any:
         """

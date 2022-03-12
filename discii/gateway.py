@@ -5,11 +5,15 @@ import json
 import sys
 import time
 
-from aiohttp import ClientWebSocketResponse, WSMsgType, WSMessage
+from aiohttp import ClientWebSocketResponse, WSMsgType
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
+from .guild import Guild
+
 if TYPE_CHECKING:
+    from .cache import Cache
     from .client import Client
+    from .state import ClientState
 
 # fmt: off
 __all__ = (
@@ -85,6 +89,8 @@ class DiscordWebSocket:
         The authentication token for the discord api.
     _heartbeat_interval
         The seconds to wait before sending another heartbeat.
+    _client_state
+        The client state.
     """
 
     # fmt: off
@@ -106,6 +112,7 @@ class DiscordWebSocket:
     token: str
     _heartbeat_interval: float
     _last_heartbeat: float
+    _client_state: "ClientState"
 
     def __init__(
         self,
@@ -113,10 +120,12 @@ class DiscordWebSocket:
         client: "Client",
         socket: ClientWebSocketResponse,
         loop: asyncio.AbstractEventLoop,
+        cache: "Cache",
     ) -> None:
         self.client: Client = client
         self.socket: ClientWebSocketResponse = socket
         self.loop: asyncio.AbstractEventLoop = loop
+        self.cache: "Cache" = cache
 
         self.session_id: Optional[str] = None
         self.sequence: int = 0
@@ -127,7 +136,7 @@ class DiscordWebSocket:
         http = client.http
         socket = await http.ws_connect("wss://gateway.discord.gg/?v=9&encoding=json")
 
-        self = cls(client=client, socket=socket, loop=http.loop)
+        self = cls(client=client, socket=socket, loop=http.loop, cache=client._cache)
         self.token = http.token
 
         return self
@@ -177,7 +186,9 @@ class DiscordWebSocket:
             self.latency = time.perf_counter() - self._last_heartbeat
             return
         if op == self.DISPATCH and message_data["t"] == "GUILD_CREATE":
-            return  # TODO: cache all guilds
+            guild = Guild(payload=message_data["d"], client_state=self._client_state)
+            self.cache.add_guild(guild)
+            return
 
         if op == self.DISPATCH and message_data["t"] == "READY":
             self.session_id = data["session_id"]
@@ -191,9 +202,8 @@ class DiscordWebSocket:
             self.sequence += 1
             await self.client.dispatch(message_data["t"], data)
 
-        if not (op == self.DISPATCH and message_data["t"] == "GUILD_CREATE"):
-            return
-            print(message_data)  # debugging
+        return
+        print(message_data)  # debugging
 
     async def listen(self) -> None:
         """
@@ -201,7 +211,8 @@ class DiscordWebSocket:
         from the gateway. Sends IDENTIFY payload.
         """
 
-        async for message in self.socket:  # type: WSMessage
+        self._client_state = self.client._get_state()
+        async for message in self.socket:
             if message.type is WSMsgType.TEXT:
                 await self._parse_message(json.loads(message.data))
             else:
