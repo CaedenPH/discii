@@ -20,6 +20,9 @@ A test discord wrapper.
 > async def on_message(message: discii.Message):
 >    print(f"Message detected. Message content: {message.content}")
 >
+>   if not message.author.bot:
+>       await message.channel.send("hi")
+>
 > @client.error
 > async def error_handler(coro, error) -> None:
 >    print(coro, error)

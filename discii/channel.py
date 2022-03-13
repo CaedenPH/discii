@@ -1,9 +1,10 @@
 from typing import Any, Dict, TYPE_CHECKING
 
-from .http import Route
+from .abc import Snowflake
 from .message import Message
 
 if TYPE_CHECKING:
+    from .guild import Guild
     from .state import ClientState
 
 # fmt: off
@@ -61,7 +62,7 @@ class ChannelType:
     # fmt: on
 
 
-class TextChannel:
+class TextChannel(Snowflake):
     """
     Represents a discord text channel
 
@@ -81,30 +82,38 @@ class TextChannel:
 
     _type: int = ChannelType.GUILD_TEXT
 
-    def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
+    def __init__(
+        self, *, guild: "Guild", payload: Dict[Any, Any], state: "ClientState"
+    ) -> None:
         # TODO: parse
         self._raw_payload = payload
         self._state = state
-        self._id = payload["id"]
+        self.id = payload["id"]
         self._name = payload["name"]
-
-    @property
-    def id(self) -> int:
-        """Returns the channel id"""
-        return self._id
+        self._guild = guild
 
     @property
     def name(self) -> str:
         """Returns the channel name"""
         return self._name
 
+    @property
+    def guild(self) -> "Guild":
+        """Returns the guild the channel is in."""
+        return self._guild
+
     async def send(self, content: str) -> Message:
-        route = Route(
-            "POST", "/channels/{channel_id}/messages".format(channel_id=self.id)
-        )
-        raw_message = await self._state.http.request(route, json={"content": content})
-        message = Message(payload=raw_message, state=self._state)
-        return message
+        """
+        Sends a message to the channel.
+
+        Parameters
+        ----------
+        content: :class:`str`
+            The content to send to the channel.
+
+        .. more params to add.
+        """
+        return await self._state.http.send_message(self.id, content=content)
 
 
 class DMChannel(TextChannel):

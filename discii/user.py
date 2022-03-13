@@ -1,5 +1,7 @@
 from typing import Any, Dict, TYPE_CHECKING
 
+from .abc import Snowflake
+
 if TYPE_CHECKING:
     from .state import ClientState
 
@@ -11,7 +13,7 @@ __all__ = (
 # fmt: on
 
 
-class User:
+class User(Snowflake):
     """
     Represents a discord user
 
@@ -27,13 +29,8 @@ class User:
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
         self._state = state
-        self._id = payload["id"]
+        self.id = payload["id"]
         self._bot: bool = payload.get("bot", False)
-
-    @property
-    def id(self) -> int:
-        """Returns the user id."""
-        return self._id
 
     @property
     def bot(self) -> bool:

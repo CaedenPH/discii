@@ -1,7 +1,6 @@
-import pprint
-
 from typing import Dict, Any, List, Optional
 
+from .abc import Snowflake
 from .channel import TextChannel
 from .state import ClientState
 
@@ -13,7 +12,7 @@ __all__ = (
 # fmt: on
 
 
-class Guild:
+class Guild(Snowflake):
     """
     Represents a discord guild.
 
@@ -27,16 +26,27 @@ class Guild:
     """
 
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
-        pprint.pprint(payload)
         self._raw_payload = payload
         self._state = state
+        self.id = payload["id"]
         self._channels: List[TextChannel] = [
-            TextChannel(payload=data, state=self._state) for data in payload["channels"]
+            TextChannel(guild=self, payload=data, state=self._state)
+            for data in payload["channels"]
         ]
-
         self.member_count = payload["member_count"]
 
     def get_channel(self, channel_id: int) -> Optional[TextChannel]:
+        """
+        Searches through the guilds channels
+        to see whether or not the id matches
+        ``channel_id``.
+
+        Parameters
+        ----------
+        channel_id: :class:`int`
+            The channel id to search for.
+        """
+
         for channel in self._channels:
             if channel.id == channel_id:
                 return channel

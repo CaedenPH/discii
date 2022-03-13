@@ -4,9 +4,13 @@ import aiohttp
 
 from asyncio import AbstractEventLoop
 from aiohttp import ClientSession, ClientWebSocketResponse
-from typing import Dict, Any
+from typing import Dict, Any, TYPE_CHECKING
 
 from . import __version__
+from .message import Message
+
+if TYPE_CHECKING:
+    from .client import Client
 
 # fmt: off
 __all__ = (
@@ -66,10 +70,16 @@ class HTTPClient:
     """
 
     def __init__(
-        self, *, token: str, loop: AbstractEventLoop, session: ClientSession
+        self,
+        *,
+        token: str,
+        loop: AbstractEventLoop,
+        session: ClientSession,
+        client: "Client"
     ) -> None:
         self.token = token
         self.loop = loop
+        self.client = client
         self._session = session
 
         user_agent = "DiscordBot (https://github.com/CaedenPH/discii {0}) Python/{1[0]}.{1[1]} aiohttp/{2}"
@@ -115,3 +125,35 @@ class HTTPClient:
 
         async with self._session.request(route.method, route.path, **kwargs) as req:
             return await req.json()
+
+    async def send_message(self, channel_id: int, **kwargs) -> Message:
+        route = Route(
+            "POST", "/channels/{channel_id}/messages".format(channel_id=channel_id)
+        )
+        payload = {
+            "content": kwargs["content"],
+        }
+        if "message_reference" in kwargs:
+            payload["message_reference"] = {
+                "message_id": kwargs["message_reference"]["message_id"],
+                "guild_id": kwargs["message_reference"]["guild_id"],
+            }
+
+        try:
+            raw_message = await self.request(route, json=payload)
+        except Exception as e:
+            raw_message = {"_": 1}  # appeasing the typechecker while in testing stage
+            print("uh " + str(e))
+
+        message = Message(payload=raw_message, state=self.client._get_state())
+        return message
+
+    async def delete_message(self, message_id: int, channel_id: int) -> None:
+        route = Route(
+            "DELETE",
+            "/channels/{channel_id}/messages/{message_id}".format(
+                channel_id=channel_id,
+                message_id=message_id,
+            ),
+        )
+        await self.request(route)

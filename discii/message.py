@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from typing import Any, Dict, TYPE_CHECKING
 
-from .http import Route
+from .abc import Snowflake
 from .user import Member
 
 if TYPE_CHECKING:
@@ -14,7 +16,7 @@ __all__ = (
 # fmt: on
 
 
-class Message:
+class Message(Snowflake):
     """
     Represents a discord message.
 
@@ -30,7 +32,7 @@ class Message:
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
         self._state = state
-        self._id = payload["id"]
+        self.id = payload["id"]
         self._content = payload["content"]
         self._channel = self._state.cache.get_channel(payload["channel_id"])
         self._author = Member(payload=payload["author"], state=self._state)
@@ -39,19 +41,23 @@ class Message:
         """
         Deletes the message
         """
-        route = Route(
-            "DELETE",
-            "/channels/{channel_id}/messages/{message_id}".format(
-                channel_id=self.channel.id,
-                message_id=self.id,
-            ),
+        await self._state.http.delete_message(
+            message_id=self.id, channel_id=self.channel.id
         )
-        await self._state.http.request(route)
 
-    @property
-    def id(self) -> int:
-        """Returns the message id."""
-        return self._id
+    async def reply(self, content: str) -> Message:
+        """
+        Replies to the message.
+
+        Parameters
+        ----------
+        content: :class:`str`
+            The content to send."""
+        return await self._state.http.send_message(
+            self.channel.id,
+            content=content,
+            message_reference={"message_id": self.id, "guild_id": self.channel.guild.id},
+        )
 
     @property
     def channel(self) -> "TextChannel":

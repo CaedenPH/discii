@@ -192,7 +192,7 @@ class Client:
 
         self.loop = loop or asyncio.get_running_loop()
         session = session or ClientSession()
-        self.http = HTTPClient(token=token, session=session, loop=self.loop)
+        self.http = HTTPClient(token=token, session=session, loop=self.loop, client=self)
         self.ws = await DiscordWebSocket.from_client(self)
 
         await self.ws.listen()  # blocking to keep code running.
