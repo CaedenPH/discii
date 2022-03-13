@@ -27,9 +27,21 @@ class User:
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
         self._state = state
+        self._id = payload["id"]
+        self._bot: bool = payload.get("bot", False)
+
+    @property
+    def id(self) -> int:
+        """Returns the user id."""
+        return self._id
+
+    @property
+    def bot(self) -> bool:
+        """Returns whether or not the author is a bot."""
+        return self._bot
 
 
-class Member:
+class Member(User):
     """
     Represents a guild-bound discord member.
     """

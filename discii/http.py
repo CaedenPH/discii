@@ -109,9 +109,9 @@ class HTTPClient:
 
         if "json" in kwargs:
             headers["Content-Type"] = "application/json"
-            kwargs["data"] = json.loads(kwargs.pop("json"))
+            kwargs["data"] = json.dumps(kwargs.pop("json"))
 
         kwargs["headers"] = headers
 
         async with self._session.request(route.method, route.path, **kwargs) as req:
-            return req
+            return await req.json()

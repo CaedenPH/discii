@@ -1,20 +1,69 @@
 from typing import Any, Dict, TYPE_CHECKING
 
+from .http import Route
+from .message import Message
+
 if TYPE_CHECKING:
     from .state import ClientState
 
 # fmt: off
 __all__ = (
-    'Channel',
+    'ChannelType',
     'TextChannel',
     'DMChannel',
 )
 # fmt: on
 
 
-class Channel:
+class ChannelType:
     """
-    The base class for all channels.
+    Represents the channel types.
+
+    Attributes
+    ----------
+    GUILD_TEXT
+        a text channel within a server
+    DM
+        a direct message between users
+    GUILD_VOICE
+        a voice channel within a server
+    GROUP_DM
+        a direct message between multiple users
+    GUILD_CATEGORY
+        an organizational category that contains up to 50 channels
+    GUILD_NEWS
+        a channel that users can follow and crosspost into their own server
+    GUILD_STORE
+        a channel in which game developers can sell their game on Discord
+    GUILD_NEWS_THREAD
+        a temporary sub-channel within a GUILD_NEWS channel
+    GUILD_PUBLIC_THREAD
+        a temporary sub-channel within a GUILD_TEXT channel
+    GUILD_PRIVATE_THREAD
+        a temporary sub-channel within a GUILD_TEXT channel that is
+        only viewable by those invited and those with the MANAGE_THREADS permission
+    GUILD_STAGE_VOICE
+        a voice channel for hosting events with an audience
+    """
+
+    # fmt: off
+    GUILD_TEXT =           0 # noqa: ignore
+    DM =                   1 # noqa: ignore
+    GUILD_VOICE =          2 # noqa: ignore
+    GROUP_DM =             3 # noqa: ignore
+    GUILD_CATEGORY =       4 # noqa: ignore
+    GUILD_NEWS =           5 # noqa: ignore
+    GUILD_STORE =          6 # noqa: ignore
+    GUILD_NEWS_THREAD =    10 # noqa: ignore
+    GUILD_PUBLIC_THREAD =  11 # noqa: ignore
+    GUILD_PRIVATE_THREAD = 12 # noqa: ignore
+    GUILD_STAGE_VOICE =    13 # noqa: ignore
+    # fmt: on
+
+
+class TextChannel:
+    """
+    Represents a discord text channel
 
     Parameters
     ----------
@@ -23,7 +72,14 @@ class Channel:
     _state: :class:`ClientState`
         The client state which holds the
         necessary attributes to perform actions.
+
+    Attributes
+    ----------
+    _type: :class:`int`
+        The channel type.
     """
+
+    _type: int = ChannelType.GUILD_TEXT
 
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         # TODO: parse
@@ -42,14 +98,23 @@ class Channel:
         """Returns the channel name"""
         return self._name
 
-
-class TextChannel(Channel):
-    """
-    Represents a discord text channel
-    """
+    async def send(self, content: str) -> Message:
+        route = Route(
+            "POST", "/channels/{channel_id}/messages".format(channel_id=self.id)
+        )
+        raw_message = await self._state.http.request(route, json={"content": content})
+        message = Message(payload=raw_message, state=self._state)
+        return message
 
 
 class DMChannel(TextChannel):
     """
     Represents a discord dm channel.
+
+    Attributes
+    ----------
+    _type: :class:`int`
+        The channel type.
     """
+
+    _type: int = ChannelType.DM

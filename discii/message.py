@@ -1,9 +1,10 @@
 from typing import Any, Dict, TYPE_CHECKING
 
-from .channel import TextChannel
 from .http import Route
+from .user import Member
 
 if TYPE_CHECKING:
+    from .channel import TextChannel
     from .state import ClientState
 
 # fmt: off
@@ -32,6 +33,7 @@ class Message:
         self._id = payload["id"]
         self._content = payload["content"]
         self._channel = self._state.cache.get_channel(payload["channel_id"])
+        self._author = Member(payload=payload["author"], state=self._state)
 
     async def delete(self) -> None:
         """
@@ -52,7 +54,7 @@ class Message:
         return self._id
 
     @property
-    def channel(self) -> TextChannel:
+    def channel(self) -> "TextChannel":
         """Returns the channel that the message was sent in."""
         return self._channel  # type: ignore
 
@@ -60,3 +62,8 @@ class Message:
     def content(self) -> str:
         """Returns the message content."""
         return self._content
+
+    @property
+    def author(self) -> Member:
+        """Returns the author who sent the message."""
+        return self._author
