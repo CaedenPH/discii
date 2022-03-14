@@ -7,6 +7,10 @@ __all__ = (
 # fmt: on
 
 
+class ChannelNotFound(Exception):
+    """Raised when a user tried to get a non-existant channel"""
+
+
 class InvalidBotToken(Exception):
     """Raised when the user inputs an invalid bot token."""
 

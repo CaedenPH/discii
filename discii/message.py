@@ -9,6 +9,7 @@ from .user import Member
 if TYPE_CHECKING:
     from .state import ClientState
 
+
 # fmt: off
 __all__ = (
     'Message',
@@ -36,7 +37,7 @@ class Message(Snowflake):
 
         self.content = payload["content"]
         self.channel = self._state.cache.get_channel(payload["channel_id"])
-        self.guild = self.channel.guild  # type: ignore
+        self.guild = self.channel.guild
         self.author = Member(payload=payload["author"], state=self._state)
 
     async def delete(self) -> None:
@@ -44,7 +45,7 @@ class Message(Snowflake):
         Deletes the message
         """
         await self._state.http.delete_message(
-            message_id=self.id, channel_id=self.channel.id  # type: ignore
+            message_id=self.id, channel_id=self.channel.id
         )
 
     async def reply(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
@@ -57,7 +58,7 @@ class Message(Snowflake):
             The content to send."""
 
         return await self._state.http.send_message(
-            self.channel.id,  # type: ignore
+            self.channel.id,
             content=content,
             embeds=embeds,
             message_reference={"message_id": self.id, "guild_id": self.guild.id},
