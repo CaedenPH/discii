@@ -40,7 +40,6 @@ class Embed:
     fields: :class:`List[Dict[str, Union[str, bool]]]`
         A list of the embeds fields.
     """
-
     type: str = "rich"
 
     def __init__(
