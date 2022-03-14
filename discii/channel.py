@@ -1,6 +1,7 @@
-from typing import Any, Dict, TYPE_CHECKING
+from typing import Any, Dict, TYPE_CHECKING, List
 
 from .abc import Snowflake
+from .embed import Embed
 from .message import Message
 
 if TYPE_CHECKING:
@@ -102,7 +103,7 @@ class TextChannel(Snowflake):
         """Returns the guild the channel is in."""
         return self._guild
 
-    async def send(self, content: str) -> Message:
+    async def send(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
         """
         Sends a message to the channel.
 
@@ -110,10 +111,12 @@ class TextChannel(Snowflake):
         ----------
         content: :class:`str`
             The content to send to the channel.
-
-        .. more params to add.
         """
-        return await self._state.http.send_message(self.id, content=content)
+        return await self._state.http.send_message(
+            self.id,
+            content=content,
+            embeds=embeds,
+        )
 
 
 class DMChannel(TextChannel):

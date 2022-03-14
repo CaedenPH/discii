@@ -16,8 +16,10 @@ async def bot_ready() -> None:
 async def on_message(message: discii.Message):
     print(f"Message detected. Message content: {message.content}")
 
+    embed = discii.Embed(title="hi")
+
     if not message.author.bot:
-        await message.reply("hi")
+        await message.reply("hi", embeds=[embed])
 
 
 if __name__ == "__main__":

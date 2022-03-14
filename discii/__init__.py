@@ -8,6 +8,7 @@ from .cache import Cache  # noqa: 401
 from .channel import ChannelType, DMChannel, TextChannel  # noqa: 401
 from .client import Client  # noqa: 401
 from .converters import _event_to_object  # noqa: 401
+from .embed import Embed  # noqa: 401
 from .errors import InvalidBotToken, InvalidFunction  # noqa: 401
 from .gateway import DiscordWebSocket  # noqa: 401
 from .http import Route, HTTPClient  # noqa: 401

@@ -130,14 +130,17 @@ class HTTPClient:
         route = Route(
             "POST", "/channels/{channel_id}/messages".format(channel_id=channel_id)
         )
+
+        if kwargs["embeds"]:
+            embeds = [embed._to_dict() for embed in kwargs["embeds"]]
+        else:
+            embeds = None
+
         payload = {
-            "content": kwargs["content"],
+            "content": kwargs["content"] or None,
+            "embeds": embeds,
+            "message_reference": kwargs["message_reference"] or None,
         }
-        if "message_reference" in kwargs:
-            payload["message_reference"] = {
-                "message_id": kwargs["message_reference"]["message_id"],
-                "guild_id": kwargs["message_reference"]["guild_id"],
-            }
 
         try:
             raw_message = await self.request(route, json=payload)

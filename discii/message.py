@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict, TYPE_CHECKING
+from typing import Any, Dict, TYPE_CHECKING, List
 
 from .abc import Snowflake
+from .embed import Embed
 from .user import Member
 
 if TYPE_CHECKING:
-    from .channel import TextChannel
     from .state import ClientState
 
 # fmt: off
@@ -33,19 +33,21 @@ class Message(Snowflake):
         self._raw_payload = payload
         self._state = state
         self.id = payload["id"]
-        self._content = payload["content"]
-        self._channel = self._state.cache.get_channel(payload["channel_id"])
-        self._author = Member(payload=payload["author"], state=self._state)
+
+        self.content = payload["content"]
+        self.channel = self._state.cache.get_channel(payload["channel_id"])
+        self.guild = self.channel.guild  # type: ignore
+        self.author = Member(payload=payload["author"], state=self._state)
 
     async def delete(self) -> None:
         """
         Deletes the message
         """
         await self._state.http.delete_message(
-            message_id=self.id, channel_id=self.channel.id
+            message_id=self.id, channel_id=self.channel.id  # type: ignore
         )
 
-    async def reply(self, content: str) -> Message:
+    async def reply(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
         """
         Replies to the message.
 
@@ -53,23 +55,10 @@ class Message(Snowflake):
         ----------
         content: :class:`str`
             The content to send."""
+
         return await self._state.http.send_message(
-            self.channel.id,
+            self.channel.id,  # type: ignore
             content=content,
-            message_reference={"message_id": self.id, "guild_id": self.channel.guild.id},
+            embeds=embeds,
+            message_reference={"message_id": self.id, "guild_id": self.guild.id},
         )
-
-    @property
-    def channel(self) -> "TextChannel":
-        """Returns the channel that the message was sent in."""
-        return self._channel  # type: ignore
-
-    @property
-    def content(self) -> str:
-        """Returns the message content."""
-        return self._content
-
-    @property
-    def author(self) -> Member:
-        """Returns the author who sent the message."""
-        return self._author
