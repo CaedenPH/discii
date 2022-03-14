@@ -150,7 +150,6 @@ class DiscordWebSocket:
         if name == "MESSAGE_CREATE":
             message = Message(payload=data, state=self.state)
             self.cache.add_message(message)
-        print(data)
 
     async def _parse_message(self, payload: Dict[Any, Any]) -> None:
         """

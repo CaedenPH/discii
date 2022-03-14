@@ -16,10 +16,14 @@ async def bot_ready() -> None:
 async def on_message(message: discii.Message):
     print(f"Message detected. Message content: {message.content}")
 
-    embed = discii.Embed(title="hi")
+    embed = discii.Embed(
+        title="Hello, this is the TITLE.", timestamp=message.timestamp, colour=0xFFFFF
+    )
+    embed.add_field(name="Hello, I am a field!", value="I am a field value!")
+    embed.set_author(name="My name is Discii!")
 
     if not message.author.bot:
-        await message.reply("hi", embeds=[embed])
+        await message.reply(embeds=[embed])
 
 
 if __name__ == "__main__":

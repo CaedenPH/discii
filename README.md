@@ -18,10 +18,14 @@ A test discord wrapper.
 >
 > @client.on("MESSAGE_CREATE")
 > async def on_message(message: discii.Message):
->    print(f"Message detected. Message content: {message.content}")
+>     print(f"Message detected. Message content: {message.content}")
 >
->   if not message.author.bot:
->       await message.channel.send("hi")
+>     embed = discii.Embed(title="Hello, this is the TITLE.", timestamp=message.timestamp, colour=0xfffff)
+>     embed.add_field(name="Hello, I am a field!", value="I am a field value!")
+>     embed.set_author(name="My name is Discii!")
+>
+>     if not message.author.bot:
+>         await message.reply(embeds=[embed])
 >
 > @client.error
 > async def error_handler(coro, error) -> None:

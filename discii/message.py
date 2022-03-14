@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Dict, TYPE_CHECKING, List
 
 from .abc import Snowflake
@@ -35,6 +36,7 @@ class Message(Snowflake):
         self._state = state
         self.id = payload["id"]
 
+        self.timestamp = datetime.fromisoformat(payload["timestamp"])
         self.content = payload["content"]
         self.channel = self._state.cache.get_channel(payload["channel_id"])
         self.guild = self.channel.guild
@@ -56,7 +58,6 @@ class Message(Snowflake):
         ----------
         content: :class:`str`
             The content to send."""
-
         return await self._state.http.send_message(
             self.channel.id,
             content=content,
