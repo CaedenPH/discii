@@ -89,6 +89,25 @@ class Cache:
             return message[0]
         return None
 
+    def get_guild(self, guild_id: int) -> Optional[Guild]:
+        """
+        Searches the internal cache for a guild.
+
+        Parameters
+        ----------
+        guild_id: :class:`int`
+            The guild's id.
+
+        Returns
+        -------
+        guild: :class:`Guild`
+            The guild if found, else None
+        """
+        guild = [guild for guild in self._guilds if guild.id == guild_id]
+        if guild is not None:
+            return guild[0]
+        return None
+
     def get_channel(self, channel_id: int) -> TextChannel:
         """
         Searches the internal cache for a channel.

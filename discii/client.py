@@ -3,16 +3,20 @@ import sys
 import traceback
 
 from aiohttp import ClientSession
-from typing import Any, Dict, List, Optional, TypeVar, Callable, Coroutine
+from typing import Any, Dict, List, Optional, TypeVar, Callable, Coroutine, TYPE_CHECKING
+
 
 from .cache import Cache
-from .channel import TextChannel
 from .converters import _event_to_object
 from .errors import ChannelNotFound, InvalidBotToken, InvalidFunction
 from .gateway import DiscordWebSocket
 from .http import HTTPClient
-from .message import Message
 from .state import ClientState
+
+if TYPE_CHECKING:
+    from .channel import TextChannel
+    from .guild import Guild
+    from .message import Message
 
 
 # fmt: off
@@ -224,7 +228,7 @@ class Client:
         except ChannelNotFound:
             return None
 
-    def get_message(self, message_id: int) -> Optional[Message]:
+    def get_message(self, message_id: int) -> Optional["Message"]:
         """
         Attempts to get a message with an id
         of ``message_id``.
@@ -236,7 +240,24 @@ class Client:
 
         Returns
         -------
-        message: :class:`TextChannel`
+        message: :class:`Message`
             The message if found, else None
         """
         return self._cache.get_message(message_id)
+
+    def get_guild(self, guild_id: int) -> Optional["Guild"]:
+        """
+        Attempts to get a guild with an id
+        of ``guild_id``.
+
+        Parameters
+        ----------
+        guild_id: :class:`int`
+            The guild's id.
+
+        Returns
+        -------
+        guild: :class:`Guild`
+            The guild if found, else None
+        """
+        return self._cache.get_guild(guild_id)

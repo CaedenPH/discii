@@ -14,7 +14,7 @@ async def bot_ready() -> None:
 
 @client.on("MESSAGE_CREATE")
 async def on_message(message: discii.Message):
-    print(f"Message detected. Message content: {message.content}")
+    print(f"Message detected. Content: {message.content}")
 
     embed = discii.Embed(
         title="Hello, this is the TITLE.", timestamp=message.timestamp, colour=0xFFFFF

@@ -34,10 +34,10 @@ class Message(Snowflake):
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
         self._state = state
-        self.id = int(payload["id"])
 
+        self.id = int(payload["id"])
         self.timestamp = datetime.fromisoformat(payload["timestamp"])
-        self.content = payload["content"]
+        self.content: str = payload["content"]
         self.channel = self._state.cache.get_channel(int(payload["channel_id"]))
         self.guild = self.channel.guild
         self.author = Member(payload=payload["author"], state=self._state)
