@@ -22,8 +22,15 @@ async def on_message(message: discii.Message):
     embed.add_field(name="Hello, I am a field!", value="I am a field value!")
     embed.set_author(name="My name is Discii!")
 
-    if not message.author.bot:
-        await message.reply(embeds=[embed])
+    if message.author.bot:
+        return
+
+    if message.content.lower() == "hi":
+        return await message.reply(embeds=[embed])
+
+    test_channel = client.get_channel(953049224516370493)
+    if test_channel is not None:
+        await test_channel.send("Heyo!")
 
 
 if __name__ == "__main__":

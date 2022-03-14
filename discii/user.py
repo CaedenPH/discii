@@ -29,7 +29,7 @@ class User(Snowflake):
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
         self._state = state
-        self.id = payload["id"]
+        self.id = int(payload["id"])
         self._bot: bool = payload.get("bot", False)
 
     @property

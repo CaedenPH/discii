@@ -89,7 +89,7 @@ class TextChannel(Snowflake):
         # TODO: parse
         self._raw_payload = payload
         self._state = state
-        self.id = payload["id"]
+        self.id = int(payload["id"])
         self._name = payload["name"]
         self._guild = guild
 

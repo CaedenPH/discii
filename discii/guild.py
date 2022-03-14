@@ -28,7 +28,7 @@ class Guild(Snowflake):
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
         self._state = state
-        self.id = payload["id"]
+        self.id = int(payload["id"])
         self._channels: List[TextChannel] = [
             TextChannel(guild=self, payload=data, state=self._state)
             for data in payload["channels"]
@@ -46,7 +46,6 @@ class Guild(Snowflake):
         channel_id: :class:`int`
             The channel id to search for.
         """
-
         for channel in self._channels:
             if channel.id == channel_id:
                 return channel

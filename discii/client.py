@@ -1,15 +1,17 @@
 import asyncio
 import sys
 import traceback
-from typing import Any, Dict, List, TypeVar, Callable, Coroutine
 
 from aiohttp import ClientSession
+from typing import Any, Dict, List, Optional, TypeVar, Callable, Coroutine
 
 from .cache import Cache
+from .channel import TextChannel
 from .converters import _event_to_object
-from .errors import InvalidBotToken, InvalidFunction
+from .errors import ChannelNotFound, InvalidBotToken, InvalidFunction
 from .gateway import DiscordWebSocket
 from .http import HTTPClient
+from .message import Message
 from .state import ClientState
 
 
@@ -50,43 +52,10 @@ class Client:
         self.events: Dict[str, List[Callable[..., Coroutine[Any, Any, Any]]]] = {}
         self.error_handlers: Dict[str, Callable[..., Coroutine[Any, Any, Any]]] = {}
 
-    def error(self, coro: Callable[..., Coroutine[Any, Any, Any]]) -> None:
-        """
-        Decorator to register a global event
-        handler.
-
-        Parameters
-        ----------
-        coro: :class:`Coro`
-            The coroutine to register as the error handler.
-        """
-        self.error_handlers["global"] = coro
-
-    def on(self, event_name: str, *, raw: bool = False):
-        """
-        Registers a coroutine as an event.
-
-        Parameters
-        ----------
-        event_name: :class:`str`
-            The event name to receive events from.
-        raw: :class:`bool`
-            Whether or not to pass the raw data received
-            from the event.
-        """
-
-        def inner(coro: Coro) -> Coro:
-            if not asyncio.iscoroutinefunction(coro):
-                raise InvalidFunction("Your event must be a coroutine.")
-
-            coro.__raw = raw
-            if event_name in self.events:
-                self.events[event_name].append(coro)
-            else:
-                self.events[event_name] = [coro]
-            return coro
-
-        return inner
+    @property
+    def latency(self) -> float:
+        """Returns the clients latency"""
+        return self.ws.latency
 
     def _get_state(self) -> ClientState:
         return ClientState(http=self.http, ws=self.ws, cache=self._cache)
@@ -197,7 +166,77 @@ class Client:
 
         await self.ws.listen()  # blocking to keep code running.
 
-    @property
-    def latency(self) -> float:
-        """Returns the clients latency"""
-        return self.ws.latency
+    def error(self, coro: Callable[..., Coroutine[Any, Any, Any]]) -> None:
+        """
+        Decorator to register a global event
+        handler.
+
+        Parameters
+        ----------
+        coro: :class:`Coro`
+            The coroutine to register as the error handler.
+        """
+        self.error_handlers["global"] = coro
+
+    def on(self, event_name: str, *, raw: bool = False):
+        """
+        Registers a coroutine as an event.
+
+        Parameters
+        ----------
+        event_name: :class:`str`
+            The event name to receive events from.
+        raw: :class:`bool`
+            Whether or not to pass the raw data received
+            from the event.
+        """
+
+        def inner(coro: Coro) -> Coro:
+            if not asyncio.iscoroutinefunction(coro):
+                raise InvalidFunction("Your event must be a coroutine.")
+
+            coro.__raw = raw
+            if event_name in self.events:
+                self.events[event_name].append(coro)
+            else:
+                self.events[event_name] = [coro]
+            return coro
+
+        return inner
+
+    def get_channel(self, channel_id: int) -> Optional[TextChannel]:
+        """
+        Attempts to get a channel with an id
+        of ``channel_id``.
+
+        Parameters
+        ----------
+        channel_id: :class:`int`
+            The channel's id.
+
+        Returns
+        -------
+        channel: :class:`TextChannel`
+            The channel if found, else None
+        """
+        try:
+            return self._cache.get_channel(channel_id)
+        except ChannelNotFound:
+            return None
+
+    def get_message(self, message_id: int) -> Optional[Message]:
+        """
+        Attempts to get a message with an id
+        of ``message_id``.
+
+        Parameters
+        ----------
+        message_id: :class:`int`
+            The message's id.
+
+        Returns
+        -------
+        message: :class:`TextChannel`
+            The message if found, else None
+        """
+        return self._cache.get_message(message_id)

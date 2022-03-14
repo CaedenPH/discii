@@ -139,7 +139,7 @@ class HTTPClient:
         payload = {
             "content": kwargs["content"] or None,
             "embeds": embeds,
-            "message_reference": kwargs["message_reference"] or None,
+            "message_reference": kwargs.get("message_reference", None),
         }
 
         try:
