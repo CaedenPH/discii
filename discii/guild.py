@@ -1,7 +1,7 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 
 from .abc import Snowflake
-from .channel import TextChannel
+from .channel import GuildCategory, TextChannel, VoiceChannel
 from .state import ClientState
 
 
@@ -10,6 +10,8 @@ __all__ = (
     'Guild',
 )
 # fmt: on
+
+Channel = Union[TextChannel, GuildCategory, VoiceChannel]
 
 
 class Guild(Snowflake):
@@ -28,14 +30,23 @@ class Guild(Snowflake):
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
         self._state = state
+
         self.id = int(payload["id"])
-        self._channels: List[TextChannel] = [
-            TextChannel(guild=self, payload=data, state=self._state)
-            for data in payload["channels"]
+        self._channels: List[Channel] = [
+            self._get_channel(payload=data) for data in payload["channels"]
         ]
         self.member_count = payload["member_count"]
 
-    def get_channel(self, channel_id: int) -> Optional[TextChannel]:
+    def _get_channel(self, payload: Dict[Any, Any]) -> Channel:
+        if payload["type"] == 4:
+            channel = GuildCategory
+        elif payload["type"] == 2:
+            channel = VoiceChannel
+        else:
+            channel = TextChannel
+        return channel(payload=payload, state=self._state, guild=self)
+
+    def get_channel(self, channel_id: int) -> Optional[Channel]:
         """
         Searches through the guilds channels
         to see whether or not the id matches

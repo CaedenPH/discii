@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 # fmt: off
 __all__ = (
     'ChannelType',
+    'GuildCategory',
     'TextChannel',
     'DMChannel',
 )
@@ -63,6 +64,29 @@ class ChannelType:
     # fmt: on
 
 
+class GuildCategory(Snowflake):
+    """
+    Represents a discord category.
+
+    Parameters
+    ----------
+    payload: :class:`Dict[Any, Any]`
+        The data received from the event.
+    state: :class:`ClientState`
+        The client state which holds the
+        necessary attributes to perform actions.
+    guild: :class:`Guild`
+        The guild which the channel is in.
+    """
+
+    def __init__(self, *, payload: Dict[Any, Any], state: "ClientState", guild: "Guild"):
+        self._raw_payload = payload
+        self._state = state
+
+        self.id = int(payload["id"])
+        self.name: str = payload["name"]
+
+
 class TextChannel(Snowflake):
     """
     Represents a discord text channel
@@ -71,37 +95,38 @@ class TextChannel(Snowflake):
     ----------
     payload: :class:`Dict[Any, Any]`
         The data received from the event.
-    _state: :class:`ClientState`
+    state: :class:`ClientState`
         The client state which holds the
         necessary attributes to perform actions.
+    guild: :class:`Guild`
+        The guild which the channel is in.
 
     Attributes
     ----------
-    _type: :class:`int`
+    type: :class:`int`
         The channel type.
     """
 
-    _type: int = ChannelType.GUILD_TEXT
+    type: int = ChannelType.GUILD_TEXT
 
     def __init__(
-        self, *, guild: "Guild", payload: Dict[Any, Any], state: "ClientState"
+        self,
+        *,
+        payload: Dict[Any, Any],
+        state: "ClientState",
+        guild: "Guild",
     ) -> None:
-        # TODO: parse
         self._raw_payload = payload
         self._state = state
+
+        self.guild: "Guild" = guild
+
         self.id = int(payload["id"])
-        self._name = payload["name"]
-        self._guild = guild
+        self.position: int = int(payload["position"])
+        self.slowmode: int = payload["rate_limit_per_user"]
 
-    @property
-    def name(self) -> str:
-        """Returns the channel name"""
-        return self._name
-
-    @property
-    def guild(self) -> "Guild":
-        """Returns the guild the channel is in."""
-        return self._guild
+        self.name: str = payload["name"]
+        self.topic: str = payload["topic"]
 
     async def send(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
         """
@@ -119,14 +144,50 @@ class TextChannel(Snowflake):
         )
 
 
+class VoiceChannel(Snowflake):
+    """
+    Represents a discord text channel
+
+    Parameters
+    ----------
+    payload: :class:`Dict[Any, Any]`
+        The data received from the event.
+    state: :class:`ClientState`
+        The client state which holds the
+        necessary attributes to perform actions.
+    guild: :class:`Guild`
+        The guild which the channel is in.
+
+    Attributes
+    ----------
+    type: :class:`int`
+        The channel type.
+    """
+
+    type: int = ChannelType.GUILD_VOICE
+
+    def __init__(
+        self,
+        *,
+        payload: Dict[Any, Any],
+        state: "ClientState",
+        guild: "Guild",
+    ) -> None:
+        self._raw_payload = payload
+        self._state = state
+
+        self.id = int(payload["id"])
+        self.name: str = payload["name"]
+
+
 class DMChannel(TextChannel):
     """
     Represents a discord dm channel.
 
     Attributes
     ----------
-    _type: :class:`int`
+    type: :class:`int`
         The channel type.
     """
 
-    _type: int = ChannelType.DM
+    type: int = ChannelType.DM

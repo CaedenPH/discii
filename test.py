@@ -26,7 +26,7 @@ async def on_message(message: discii.Message):
         return
 
     if message.content.lower() == "hi":
-        return await message.reply(embeds=[embed])
+        await message.reply(embeds=[embed])
 
     test_channel = client.get_channel(953049224516370493)
     if test_channel is not None:
