@@ -5,6 +5,7 @@ from typing import Any, Dict, TYPE_CHECKING, List
 
 from .abc import Snowflake
 from .embed import Embed
+from .errors import ChannelNotFound
 from .user import Member
 
 if TYPE_CHECKING:
@@ -38,13 +39,17 @@ class Message(Snowflake):
         self.id = int(payload["id"])
         self.timestamp = datetime.fromisoformat(payload["timestamp"])
         self.content: str = payload["content"]
-        self.channel = self._state.cache.get_channel(int(payload["channel_id"]))
+        try:
+            self.channel = self._state.cache.get_channel(int(payload["channel_id"]))
+        except ChannelNotFound:
+            self.channel = ... # dm channel
+        
         self.guild = self.channel.guild
         self.author = Member(payload=payload["author"], state=self._state)
 
     async def delete(self) -> None:
         """
-        Deletes the message
+        Deletes the message.
         """
         await self._state.http.delete_message(
             message_id=self.id, channel_id=self.channel.id
@@ -57,7 +62,8 @@ class Message(Snowflake):
         Parameters
         ----------
         content: :class:`str`
-            The content to send."""
+            The content to send.
+        """
         return await self._state.http.send_message(
             self.channel.id,
             content=content,

@@ -8,8 +8,10 @@ from typing import Dict, Any, TYPE_CHECKING
 
 from . import __version__
 from .message import Message
+from .user import User
 
 if TYPE_CHECKING:
+    from .cache import Cache
     from .client import Client
 
 # fmt: off
@@ -61,6 +63,8 @@ class HTTPClient:
         with the discord api.
     loop: :class:`AbstractEventLoop`
         The event loop that all tasks run from.
+    cache: :class:`Cache`
+        The cache that holds info.
     _session: :class:`ClientSession`
         The session to make requests from
         and to handle interactions with the api.
@@ -77,10 +81,11 @@ class HTTPClient:
         session: ClientSession,
         client: "Client"
     ) -> None:
-        self.token = token
-        self.loop = loop
-        self.client = client
-        self._session = session
+        self.token: str = token
+        self.loop: AbstractEventLoop = loop
+        self.client: "Client" = client
+        self.cache: "Cache" = client._cache
+        self._session: ClientSession = session
 
         user_agent = "DiscordBot (https://github.com/CaedenPH/discii {0}) Python/{1[0]}.{1[1]} aiohttp/{2}"
         self.user_agent: str = user_agent.format(
@@ -160,3 +165,15 @@ class HTTPClient:
             ),
         )
         await self.request(route)
+
+    async def create_dm(self, user_id: int) -> int:
+        route = Route(
+            "POST",
+            "/users/@me/channels"
+        )
+        request = await self.request(route, json={"recipient_id": user_id})
+
+        user = User(payload=request["recipients"][0], state=self.client._get_state())
+        self.cache.add_user(user)
+
+        return request["id"]

@@ -4,7 +4,7 @@ import weakref
 from typing import Deque, List, Optional, TYPE_CHECKING
 
 from .channel import TextChannel
-from .errors import ChannelNotFound
+from .errors import ChannelNotFound, UserNotFound
 from .guild import Guild
 from .user import User
 
@@ -70,6 +70,9 @@ class Cache:
         """
         self._messages.append(message)
 
+    def add_user(self, user: User) -> None:
+        self._users[user.id] = user
+
     def get_message(self, message_id: int) -> Optional["Message"]:
         """
         Searches the internal cache for a message
@@ -127,3 +130,9 @@ class Cache:
             if channel is not None:
                 return channel
         raise ChannelNotFound("Channel with id ``{}`` not found".format(channel_id))
+
+    def get_user(self, user_id: int) -> User:
+        if user_id in self._users:
+            return self._users[user_id]
+        raise UserNotFound("User with id ``{}`` not found".format(user_id))
+        

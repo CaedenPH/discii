@@ -1,8 +1,6 @@
 from typing import Any, Dict, TYPE_CHECKING, List
 
-from .abc import Snowflake
-from .embed import Embed
-from .message import Message
+from .abc import Messageable, Snowflake
 
 if TYPE_CHECKING:
     from .guild import Guild
@@ -87,7 +85,7 @@ class GuildCategory(Snowflake):
         self.name: str = payload["name"]
 
 
-class TextChannel(Snowflake):
+class TextChannel(Messageable):
     """
     Represents a discord text channel
 
@@ -128,21 +126,8 @@ class TextChannel(Snowflake):
         self.name: str = payload["name"]
         self.topic: str = payload["topic"]
 
-    async def send(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
-        """
-        Sends a message to the channel.
-
-        Parameters
-        ----------
-        content: :class:`str`
-            The content to send to the channel.
-        """
-        return await self._state.http.send_message(
-            self.id,
-            content=content,
-            embeds=embeds,
-        )
-
+    async def _get_channel_id(self) -> int:
+        return self.id
 
 class VoiceChannel(Snowflake):
     """
@@ -163,7 +148,6 @@ class VoiceChannel(Snowflake):
     type: :class:`int`
         The channel type.
     """
-
     type: int = ChannelType.GUILD_VOICE
 
     def __init__(
@@ -189,5 +173,4 @@ class DMChannel(TextChannel):
     type: :class:`int`
         The channel type.
     """
-
     type: int = ChannelType.DM

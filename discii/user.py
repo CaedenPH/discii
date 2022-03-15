@@ -1,6 +1,6 @@
 from typing import Any, Dict, TYPE_CHECKING
 
-from .abc import Snowflake
+from .abc import Messageable
 
 if TYPE_CHECKING:
     from .state import ClientState
@@ -13,7 +13,7 @@ __all__ = (
 # fmt: on
 
 
-class User(Snowflake):
+class User(Messageable):
     """
     Represents a discord user
 
@@ -29,13 +29,13 @@ class User(Snowflake):
     def __init__(self, *, payload: Dict[Any, Any], state: "ClientState") -> None:
         self._raw_payload = payload
         self._state = state
-        self.id = int(payload["id"])
-        self._bot: bool = payload.get("bot", False)
 
-    @property
-    def bot(self) -> bool:
-        """Returns whether or not the author is a bot."""
-        return self._bot
+        self.id = int(payload["id"])
+        self.bot: bool = payload.get("bot", False)
+    
+    async def _get_channel_id(self) -> int:
+        channel_id = await self._state.http.create_dm(self.id)
+        return channel_id
 
 
 class Member(User):

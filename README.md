@@ -27,6 +27,10 @@ A test discord wrapper.
 >     if not message.author.bot:
 >         await message.reply(embeds=[embed])
 >
+>     test_channel = client.get_channel(953049224516370493)
+>     if test_channel is not None:
+>         await test_channel.send("Heyo!")
+>
 > @client.error
 > async def error_handler(coro, error) -> None:
 >    print(coro, error)

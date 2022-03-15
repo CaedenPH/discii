@@ -31,6 +31,9 @@ async def on_message(message: discii.Message):
     test_channel = client.get_channel(953049224516370493)
     if test_channel is not None:
         await test_channel.send("Heyo!")
+    
+    await message.author.send("hello...")
+    
 
 
 if __name__ == "__main__":
