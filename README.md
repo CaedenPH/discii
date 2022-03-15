@@ -1,5 +1,5 @@
 <div align='center'>
-  <img src = "asserts/discii.png" width = "200" height="200">
+  <img src = "assets/discii.png" width = "200" height="200">
 
   <br>
 
