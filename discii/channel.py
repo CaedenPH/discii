@@ -48,17 +48,17 @@ class ChannelType:
     """
 
     # fmt: off
-    GUILD_TEXT =           0 # noqa: ignore
-    DM =                   1 # noqa: ignore
-    GUILD_VOICE =          2 # noqa: ignore
-    GROUP_DM =             3 # noqa: ignore
-    GUILD_CATEGORY =       4 # noqa: ignore
-    GUILD_NEWS =           5 # noqa: ignore
-    GUILD_STORE =          6 # noqa: ignore
-    GUILD_NEWS_THREAD =    10 # noqa: ignore
-    GUILD_PUBLIC_THREAD =  11 # noqa: ignore
-    GUILD_PRIVATE_THREAD = 12 # noqa: ignore
-    GUILD_STAGE_VOICE =    13 # noqa: ignore
+    GUILD_TEXT =           0 
+    DM =                   1 
+    GUILD_VOICE =          2 
+    GROUP_DM =             3
+    GUILD_CATEGORY =       4 
+    GUILD_NEWS =           5 
+    GUILD_STORE =          6 
+    GUILD_NEWS_THREAD =    10 
+    GUILD_PUBLIC_THREAD =  11 
+    GUILD_PRIVATE_THREAD = 12 
+    GUILD_STAGE_VOICE =    13 
     # fmt: on
 
 

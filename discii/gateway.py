@@ -66,19 +66,19 @@ class DiscordWebSocket:
     """
 
     # fmt: off
-    DISPATCH           = 0 # noqa: ignore
-    HEARTBEAT          = 1 # noqa: ignore
-    IDENTIFY           = 2 # noqa: ignore
-    PRESENCE           = 3 # noqa: ignore
-    VOICE_STATE        = 4 # noqa: ignore
-    VOICE_PING         = 5 # noqa: ignore
-    RESUME             = 6 # noqa: ignore
-    RECONNECT          = 7 # noqa: ignore
-    REQUEST_MEMBERS    = 8 # noqa: ignore
-    INVALIDATE_SESSION = 9 # noqa: ignore
-    HELLO              = 10 # noqa: ignore
-    HEARTBEAT_ACK      = 11 # noqa: ignore
-    GUILD_SYNC         = 12 # noqa: ignore
+    DISPATCH           = 0 
+    HEARTBEAT          = 1 
+    IDENTIFY           = 2 
+    PRESENCE           = 3 
+    VOICE_STATE        = 4 
+    VOICE_PING         = 5 
+    RESUME             = 6 
+    RECONNECT          = 7 
+    REQUEST_MEMBERS    = 8 
+    INVALIDATE_SESSION = 9 
+    HELLO              = 10 
+    HEARTBEAT_ACK      = 11 
+    GUILD_SYNC         = 12 
     # fmt: on
 
     token: str
