@@ -14,7 +14,7 @@ from .http import HTTPClient
 from .state import ClientState
 
 if TYPE_CHECKING:
-    from .channel import TextChannel
+    from .channel import Channel
     from .guild import Guild
     from .message import Message
 
@@ -82,8 +82,8 @@ class Client:
             coro itself.
         """
 
-        cs = self._get_state()
-        state = _event_to_object(name, data, cs)
+        state = self._get_state()
+        state = _event_to_object(name, data, state)
         if state is None:
             return ()
         return state
@@ -208,7 +208,7 @@ class Client:
 
         return inner
 
-    def get_channel(self, channel_id: int) -> Optional["TextChannel"]:
+    def get_channel(self, channel_id: int) -> Optional[Channel]:
         """
         Attempts to get a channel with an id
         of ``channel_id``.

@@ -5,7 +5,6 @@ from typing import Any, Dict, TYPE_CHECKING, List
 
 from .abc import Snowflake
 from .embed import Embed
-from .errors import ChannelNotFound
 from .user import Member
 
 if TYPE_CHECKING:
@@ -39,11 +38,7 @@ class Message(Snowflake):
         self.id = int(payload["id"])
         self.timestamp = datetime.fromisoformat(payload["timestamp"])
         self.content: str = payload["content"]
-        try:
-            self.channel = self._state.cache.get_channel(int(payload["channel_id"]))
-        except ChannelNotFound:
-            self.channel = ... # dm channel
-        
+        self.channel = self._state.cache.get_channel(int(payload["channel_id"]))
         self.guild = self.channel.guild
         self.author = Member(payload=payload["author"], state=self._state)
 
@@ -68,5 +63,8 @@ class Message(Snowflake):
             self.channel.id,
             content=content,
             embeds=embeds,
-            message_reference={"message_id": self.id, "guild_id": self.guild.id},
+            message_reference={
+                "message_id": self.id,
+                "guild_id": getattr(self.guild, "id", None),
+            },
         )

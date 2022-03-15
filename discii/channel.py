@@ -1,19 +1,19 @@
-from typing import Any, Dict, TYPE_CHECKING, List
+from typing import Any, Dict, Union, TYPE_CHECKING
 
 from .abc import Messageable, Snowflake
 
 if TYPE_CHECKING:
     from .guild import Guild
     from .state import ClientState
+    from .user import User
 
-# fmt: off
 __all__ = (
-    'ChannelType',
-    'GuildCategory',
-    'TextChannel',
-    'DMChannel',
+    "ChannelType",
+    "GuildCategory",
+    "TextChannel",
+    "DMChannel",
+    "Channel",
 )
-# fmt: on
 
 
 class ChannelType:
@@ -83,6 +83,7 @@ class GuildCategory(Snowflake):
 
         self.id = int(payload["id"])
         self.name: str = payload["name"]
+        self.guild = guild
 
 
 class TextChannel(Messageable):
@@ -129,6 +130,7 @@ class TextChannel(Messageable):
     async def _get_channel_id(self) -> int:
         return self.id
 
+
 class VoiceChannel(Snowflake):
     """
     Represents a discord text channel
@@ -148,6 +150,7 @@ class VoiceChannel(Snowflake):
     type: :class:`int`
         The channel type.
     """
+
     type: int = ChannelType.GUILD_VOICE
 
     def __init__(
@@ -162,9 +165,10 @@ class VoiceChannel(Snowflake):
 
         self.id = int(payload["id"])
         self.name: str = payload["name"]
+        self.guild = guild
 
 
-class DMChannel(TextChannel):
+class DMChannel(Messageable):
     """
     Represents a discord dm channel.
 
@@ -173,4 +177,21 @@ class DMChannel(TextChannel):
     type: :class:`int`
         The channel type.
     """
+
     type: int = ChannelType.DM
+
+    def __init__(
+        self, *, payload: Dict[Any, Any], state: "ClientState", user: "User"
+    ) -> None:
+        self._raw_payload = payload
+        self._state = state
+
+        self.id = int(payload["id"])
+        self.user = user
+        self.guild = None
+
+    async def _get_channel_id(self) -> int:
+        return self.id
+
+
+Channel = Union[TextChannel, GuildCategory, DMChannel, VoiceChannel]

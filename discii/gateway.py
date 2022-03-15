@@ -63,8 +63,6 @@ class DiscordWebSocket:
         The authentication token for the discord api.
     _heartbeat_interval
         The seconds to wait before sending another heartbeat.
-    _cs
-        The client state.
     """
 
     # fmt: off

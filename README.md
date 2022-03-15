@@ -1,12 +1,12 @@
 <div align='center'>
-  <img src = "discii.png" width = "200" height="200">
-  
+  <img src = "asserts/discii.png" width = "200" height="200">
+
   <br>
-  
-  `Discii` is a test discord wrapper.
-  
+
+  `discii` - the light-weight discord wrapper.
+
   <br>
-  
+
 </div>
 
 

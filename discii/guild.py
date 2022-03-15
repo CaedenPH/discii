@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Optional, Union
 
 from .abc import Snowflake
-from .channel import GuildCategory, TextChannel, VoiceChannel
+from .channel import DMChannel, GuildCategory, TextChannel, VoiceChannel
 from .state import ClientState
 
 
@@ -11,7 +11,7 @@ __all__ = (
 )
 # fmt: on
 
-Channel = Union[TextChannel, GuildCategory, VoiceChannel]
+Channel = Union[TextChannel, GuildCategory, VoiceChannel, DMChannel]
 
 
 class Guild(Snowflake):

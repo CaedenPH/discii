@@ -32,7 +32,7 @@ class User(Messageable):
 
         self.id = int(payload["id"])
         self.bot: bool = payload.get("bot", False)
-    
+
     async def _get_channel_id(self) -> int:
         channel_id = await self._state.http.create_dm(self.id)
         return channel_id

@@ -1,9 +1,9 @@
 import collections
 import weakref
 
-from typing import Deque, List, Optional, TYPE_CHECKING
+from typing import Deque, List, Optional, Union, TYPE_CHECKING
 
-from .channel import TextChannel
+from .channel import TextChannel, DMChannel, GuildCategory, VoiceChannel
 from .errors import ChannelNotFound, UserNotFound
 from .guild import Guild
 from .user import User
@@ -46,6 +46,7 @@ class Cache:
             int, User
         ] = weakref.WeakValueDictionary()
         self._guilds: List[Guild] = []
+        self._dm_channels: List[DMChannel] = []
         self._messages: Deque["Message"] = collections.deque()
 
     def add_guild(self, guild: Guild) -> None:
@@ -72,6 +73,9 @@ class Cache:
 
     def add_user(self, user: User) -> None:
         self._users[user.id] = user
+
+    def add_dm_channel(self, channel: DMChannel) -> None:
+        self._dm_channels.append(channel)
 
     def get_message(self, message_id: int) -> Optional["Message"]:
         """
@@ -111,7 +115,9 @@ class Cache:
             return guild[0]
         return None
 
-    def get_channel(self, channel_id: int) -> TextChannel:
+    def get_channel(
+        self, channel_id: int
+    ) -> Union[TextChannel, DMChannel, GuildCategory, VoiceChannel]:
         """
         Searches the internal cache for a channel.
 
@@ -129,10 +135,14 @@ class Cache:
             channel = guild.get_channel(channel_id)
             if channel is not None:
                 return channel
+
+        dm_channel = [dmc for dmc in self._dm_channels if dmc.id == channel_id]
+        if dm_channel is not None:
+            return dm_channel[0]
+
         raise ChannelNotFound("Channel with id ``{}`` not found".format(channel_id))
 
     def get_user(self, user_id: int) -> User:
         if user_id in self._users:
             return self._users[user_id]
         raise UserNotFound("User with id ``{}`` not found".format(user_id))
-        

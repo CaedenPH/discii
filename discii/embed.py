@@ -40,6 +40,7 @@ class Embed:
     fields: :class:`List[Dict[str, Union[str, bool]]]`
         A list of the embeds fields.
     """
+
     type: str = "rich"
 
     def __init__(
@@ -130,10 +131,10 @@ class Embed:
         Parameters
         ----------
         name: :class:`str`
-            The field name. Defaults to 
+            The field name. Defaults to
             an ascii no width char.
         value: :class:`str`
-            The field value. Defaults to 
+            The field value. Defaults to
             an ascii no width char.
         """
         self.fields.append({"name": name, "value": value, "inline": inline})

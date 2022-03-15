@@ -6,6 +6,8 @@ from asyncio import AbstractEventLoop
 from aiohttp import ClientSession, ClientWebSocketResponse
 from typing import Dict, Any, TYPE_CHECKING
 
+from discii.channel import DMChannel
+
 from . import __version__
 from .message import Message
 from .user import User
@@ -167,13 +169,13 @@ class HTTPClient:
         await self.request(route)
 
     async def create_dm(self, user_id: int) -> int:
-        route = Route(
-            "POST",
-            "/users/@me/channels"
-        )
-        request = await self.request(route, json={"recipient_id": user_id})
+        route = Route("POST", "/users/@me/channels")
+        payload = await self.request(route, json={"recipient_id": user_id})
 
-        user = User(payload=request["recipients"][0], state=self.client._get_state())
+        user = User(payload=payload["recipients"][0], state=self.client._get_state())
         self.cache.add_user(user)
+        self.cache.add_dm_channel(
+            DMChannel(payload=payload, state=self.client._get_state(), user=user)
+        )
 
-        return request["id"]
+        return payload["id"]

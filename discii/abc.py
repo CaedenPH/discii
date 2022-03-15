@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 # fmt: off
 __all__ = (
-    "Snowflake", 
+    "Snowflake",
     "Messageable",
 )
 # fmt: on
@@ -26,10 +26,11 @@ class Snowflake:
 
     id: int
 
+
 class Messageable(Snowflake):
     """
     Represents a channel in which messages
-    can be sent and received, for example a 
+    can be sent and received, for example a
     guild text channel or a user dm channel.
 
     Attributes
@@ -37,12 +38,15 @@ class Messageable(Snowflake):
     _state: :class:`ClientState`
         The client's state used to make requests.
     """
+
     _state: "ClientState"
 
     async def _get_channel_id(self) -> int:
         raise NotImplementedError
 
-    async def send(self, content: str = None, *, embeds: List["Embed"] = None) -> "Message":
+    async def send(
+        self, content: str = None, *, embeds: List["Embed"] = None
+    ) -> "Message":
         """
         Sends a message to the channel.
 
