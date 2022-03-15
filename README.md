@@ -1,5 +1,14 @@
-# discii
-A test discord wrapper.
+<div align='center'>
+  <img src = "discii.png" width = "200" height="200">
+  
+  <br>
+  
+  `Discii` is a test discord wrapper.
+  
+  <br>
+  
+</div>
+
 
 **Example Client:**
 > ```py
