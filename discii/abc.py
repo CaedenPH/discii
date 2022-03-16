@@ -54,6 +54,8 @@ class Messageable(Snowflake):
         ----------
         content: :class:`str`
             The content to send to the channel.
+        embeds: :class:`List[Embed]`
+            The message embeds.
         """
         channel_id = await self._get_channel_id()
         return await self._state.http.send_message(

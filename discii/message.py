@@ -57,7 +57,9 @@ class Message(Snowflake):
         Parameters
         ----------
         content: :class:`str`
-            The content to send.
+            The content to edit to.
+        embeds: :class:`List[Embed]`
+            The embeds to add to the message.
         """
         return await self._state.http.edit_message(
             self.channel.id,
@@ -65,7 +67,7 @@ class Message(Snowflake):
             content=content,
             embeds=embeds,
         )
-
+    
     async def reply(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
         """
         Replies to the message.
@@ -74,6 +76,8 @@ class Message(Snowflake):
         ----------
         content: :class:`str`
             The content to send.
+        embeds: :class:`List[Embed]`
+            The message embeds.
         """
         return await self._state.http.send_message(
             self.channel.id,
