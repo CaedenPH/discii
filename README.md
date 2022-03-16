@@ -3,7 +3,7 @@
 
   <br>
 
-  `discii` - the light-weight discord wrapper.
+  `discii` - the lightweight discord wrapper.
 
   <br>
 
