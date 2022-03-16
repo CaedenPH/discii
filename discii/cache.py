@@ -72,9 +72,27 @@ class Cache:
         self._messages.append(message)
 
     def add_user(self, user: User) -> None:
+
+        """
+        Adds a user to the internal guild cache.
+
+        Parameters
+        ----------
+        user: :class:`User`
+            The guild to add to the cache.
+        """
+
         self._users[user.id] = user
 
     def add_dm_channel(self, channel: DMChannel) -> None:
+        """
+        Adds a dm channel to the internal guild cache.
+ 
+        Parameters
+        ----------
+        channel: :class:`DMChannel`
+            The dm channel to add to the cache.
+        """
         self._dm_channels.append(channel)
 
     def get_message(self, message_id: int) -> Optional["Message"]:
@@ -143,6 +161,19 @@ class Cache:
         raise ChannelNotFound("Channel with id ``{}`` not found".format(channel_id))
 
     def get_user(self, user_id: int) -> User:
+        """
+        Searches the internal cache for a user.
+
+        Parameters
+        ----------
+        user_id: :class:`int`
+            The user id to find.
+
+        Returns
+        -------
+        user: :class:`User`
+            The user if found, else `None`
+        """
         if user_id in self._users:
             return self._users[user_id]
         raise UserNotFound("User with id ``{}`` not found".format(user_id))
