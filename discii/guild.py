@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import Dict, Any, List, Optional, Union
 
 from .abc import Snowflake
@@ -32,19 +33,19 @@ class Guild(Snowflake):
         self._state = state
 
         self.id = int(payload["id"])
-        self._channels: List[Channel] = [
-            self._get_channel(payload=data) for data in payload["channels"]
-        ]
+        self._channels: List[Channel] = [self._get_channel(payload=data) for data in payload["channels"]]
         self.member_count = payload["member_count"]
 
-    def _get_channel(self, payload: Dict[Any, Any]) -> Channel:
-        if payload["type"] == 4:
-            channel = GuildCategory
-        elif payload["type"] == 2:
-            channel = VoiceChannel
-        else:
-            channel = TextChannel
-        return channel(payload=payload, state=self._state, guild=self)
+    def _get_channel(self, payload: Dict[Any, Any]) -> Optional[Channel]:
+        _channel_converter = {
+            4: GuildCategory,
+            2: VoiceChannel,
+            0: TextChannel,
+        }
+        channel = _channel_converter.get(payload["type"])
+
+        if channel is not None:
+            return channel(payload=payload, state=self._state, guild=self)
 
     def get_channel(self, channel_id: int) -> Optional[Channel]:
         """
@@ -60,3 +61,14 @@ class Guild(Snowflake):
         for channel in self._channels:
             if channel.id == channel_id:
                 return channel
+
+    async def ban(self, user_id: int) -> None:
+        """
+        Bans a user with an id of ``user_id``
+
+        Parameters
+        ----------
+        user_id: :class:`int`
+            The user id to ban.
+        """
+        await self._state.http.ban_user(guild_id=self.id, user_id=user_id)

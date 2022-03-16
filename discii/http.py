@@ -75,14 +75,7 @@ class HTTPClient:
         so that the discord api is less suspicious.
     """
 
-    def __init__(
-        self,
-        *,
-        token: str,
-        loop: AbstractEventLoop,
-        session: ClientSession,
-        client: "Client"
-    ) -> None:
+    def __init__(self, *, token: str, loop: AbstractEventLoop, session: ClientSession, client: "Client") -> None:
         self.token: str = token
         self.loop: AbstractEventLoop = loop
         self.client: "Client" = client
@@ -90,9 +83,7 @@ class HTTPClient:
         self._session: ClientSession = session
 
         user_agent = "DiscordBot (https://github.com/CaedenPH/discii {0}) Python/{1[0]}.{1[1]} aiohttp/{2}"
-        self.user_agent: str = user_agent.format(
-            __version__, sys.version_info, aiohttp.__version__
-        )
+        self.user_agent: str = user_agent.format(__version__, sys.version_info, aiohttp.__version__)
 
     async def ws_connect(self, gateway_url: str) -> ClientWebSocketResponse:
         """
@@ -134,9 +125,7 @@ class HTTPClient:
             return await req.json()
 
     async def send_message(self, channel_id: int, **kwargs: Any) -> Message:
-        route = Route(
-            "POST", "/channels/{channel_id}/messages".format(channel_id=channel_id)
-        )
+        route = Route("POST", "/channels/{channel_id}/messages".format(channel_id=channel_id))
 
         if kwargs["embeds"]:
             embeds = [embed._to_dict() for embed in kwargs["embeds"]]
@@ -181,7 +170,7 @@ class HTTPClient:
 
         message = Message(payload=raw_message, state=self.client._get_state())
         return message
-        
+
     async def delete_message(self, message_id: int, channel_id: int) -> None:
         route = Route(
             "DELETE",
@@ -198,8 +187,11 @@ class HTTPClient:
 
         user = User(payload=payload["recipients"][0], state=self.client._get_state())
         self.cache.add_user(user)
-        self.cache.add_dm_channel(
-            DMChannel(payload=payload, state=self.client._get_state(), user=user)
-        )
+        self.cache.add_dm_channel(DMChannel(payload=payload, state=self.client._get_state(), user=user))
 
         return payload["id"]
+
+    async def ban_user(self, *, guild_id: int, user_id: int) -> Any:
+        route = Route("PUT", "/guilds/{guild_id}/bans/{user_id}".format(guild_id=guild_id, user_id=user_id))
+        payload = await self.request(route)
+        return payload

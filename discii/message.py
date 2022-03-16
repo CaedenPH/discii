@@ -46,9 +46,7 @@ class Message(Snowflake):
         """
         Deletes the message.
         """
-        await self._state.http.delete_message(
-            message_id=self.id, channel_id=self.channel.id
-        )
+        await self._state.http.delete_message(message_id=self.id, channel_id=self.channel.id)
 
     async def edit(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
         """
@@ -67,7 +65,7 @@ class Message(Snowflake):
             content=content,
             embeds=embeds,
         )
-    
+
     async def reply(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
         """
         Replies to the message.

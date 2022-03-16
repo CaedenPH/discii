@@ -33,9 +33,7 @@ class ClientState:
         and received from the gateway.
     """
 
-    def __init__(
-        self, *, http: "HTTPClient", ws: "DiscordWebSocket", cache: "Cache"
-    ) -> None:
+    def __init__(self, *, http: "HTTPClient", ws: "DiscordWebSocket", cache: "Cache") -> None:
         self.http = http
         self.loop = http.loop
         self.ws = ws

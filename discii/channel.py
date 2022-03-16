@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import Any, Dict, Union, TYPE_CHECKING
 
 from .abc import Messageable, Snowflake
@@ -115,6 +116,7 @@ class TextChannel(Messageable):
         state: "ClientState",
         guild: "Guild",
     ) -> None:
+        pprint(payload)
         self._raw_payload = payload
         self._state = state
 
@@ -180,9 +182,7 @@ class DMChannel(Messageable):
 
     type: int = ChannelType.DM
 
-    def __init__(
-        self, *, payload: Dict[Any, Any], state: "ClientState", user: "User"
-    ) -> None:
+    def __init__(self, *, payload: Dict[Any, Any], state: "ClientState", user: "User") -> None:
         self._raw_payload = payload
         self._state = state
 

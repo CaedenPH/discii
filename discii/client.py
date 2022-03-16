@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .channel import Channel
     from .guild import Guild
     from .message import Message
+    from .user import User
 
 
 # fmt: off
@@ -88,9 +89,7 @@ class Client:
             return ()
         return state
 
-    async def _run_event(
-        self, coro: Callable[..., Coroutine[Any, Any, Any]], *args, **kwargs
-    ) -> None:
+    async def _run_event(self, coro: Callable[..., Coroutine[Any, Any, Any]], *args, **kwargs) -> None:
         """
         Runs the event in a localised task.
 
@@ -104,9 +103,7 @@ class Client:
         except Exception as error:
             await self.on_error(error, coro)
 
-    async def on_error(
-        self, error: Any, coro: Callable[..., Coroutine[Any, Any, Any]]
-    ) -> None:
+    async def on_error(self, error: Any, coro: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         if coro.__name__ in self.error_handlers:
             handler = self.error_handlers[coro.__name__]
             return await handler(error)
@@ -159,9 +156,7 @@ class Client:
         """
 
         if not isinstance(token, str) or len(token) != 59:
-            raise InvalidBotToken(
-                "Make sure you enter a valid bot token instead of ``{}``".format(token)
-            )
+            raise InvalidBotToken("Make sure you enter a valid bot token instead of ``{}``".format(token))
 
         self.loop = loop or asyncio.get_running_loop()
         session = session or ClientSession()
@@ -261,3 +256,20 @@ class Client:
             The guild if found, else None
         """
         return self._cache.get_guild(guild_id)
+
+    def get_user(self, user_id: int) -> Optional["User"]:
+        """
+        Attempts to get a user with an id
+        of ``user_id``.
+
+        Parameters
+        ----------
+        user_id: :class:`int`
+            The user's id.
+
+        Returns
+        -------
+        user: :class:`User`
+            The user if found, else None
+        """
+        return self._cache.get_user(user_id)

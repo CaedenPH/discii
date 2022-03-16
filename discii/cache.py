@@ -42,9 +42,7 @@ class Cache:
 
     def __init__(self) -> None:
         self.user: Optional[User] = None
-        self._users: weakref.WeakValueDictionary[
-            int, User
-        ] = weakref.WeakValueDictionary()
+        self._users: weakref.WeakValueDictionary[int, User] = weakref.WeakValueDictionary()
         self._guilds: List[Guild] = []
         self._dm_channels: List[DMChannel] = []
         self._messages: Deque["Message"] = collections.deque()
@@ -81,13 +79,12 @@ class Cache:
         user: :class:`User`
             The guild to add to the cache.
         """
-
         self._users[user.id] = user
 
     def add_dm_channel(self, channel: DMChannel) -> None:
         """
         Adds a dm channel to the internal guild cache.
- 
+
         Parameters
         ----------
         channel: :class:`DMChannel`
@@ -133,9 +130,7 @@ class Cache:
             return guild[0]
         return None
 
-    def get_channel(
-        self, channel_id: int
-    ) -> Union[TextChannel, DMChannel, GuildCategory, VoiceChannel]:
+    def get_channel(self, channel_id: int) -> Union[TextChannel, DMChannel, GuildCategory, VoiceChannel]:
         """
         Searches the internal cache for a channel.
 

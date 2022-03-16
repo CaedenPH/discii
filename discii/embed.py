@@ -122,9 +122,7 @@ class Embed:
         """
         self.footer = {"text": text, "icon_url": icon_url}
 
-    def add_field(
-        self, name: str = NO_WIDTH_CHAR, value: str = NO_WIDTH_CHAR, inline: bool = False
-    ) -> None:
+    def add_field(self, name: str = NO_WIDTH_CHAR, value: str = NO_WIDTH_CHAR, inline: bool = False) -> None:
         """
         Adds a field to the embed.
 
