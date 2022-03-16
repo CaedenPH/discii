@@ -133,7 +133,7 @@ class HTTPClient:
         async with self._session.request(route.method, route.path, **kwargs) as req:
             return await req.json()
 
-    async def send_message(self, channel_id: int, **kwargs) -> Message:
+    async def send_message(self, channel_id: int, **kwargs: Any) -> Message:
         route = Route(
             "POST", "/channels/{channel_id}/messages".format(channel_id=channel_id)
         )
@@ -158,6 +158,30 @@ class HTTPClient:
         message = Message(payload=raw_message, state=self.client._get_state())
         return message
 
+    async def edit_message(self, channel_id: int, *, message_id: int, **kwargs: Any) -> Message:
+        route = Route(
+            "PATCH", "/channels/{channel_id}/messages/{message_id}".format(channel_id=channel_id, message_id=message_id)
+        )
+
+        if kwargs["embeds"]:
+            embeds = [embed._to_dict() for embed in kwargs["embeds"]]
+        else:
+            embeds = None
+
+        payload = {
+            "content": kwargs["content"] or None,
+            "embeds": embeds,
+        }
+
+        try:
+            raw_message = await self.request(route, json=payload)
+        except Exception as e:
+            raw_message = {"_": 1}  # appeasing the typechecker while in testing stage
+            print("uh " + str(e))
+
+        message = Message(payload=raw_message, state=self.client._get_state())
+        return message
+        
     async def delete_message(self, message_id: int, channel_id: int) -> None:
         route = Route(
             "DELETE",

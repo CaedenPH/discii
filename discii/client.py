@@ -208,7 +208,7 @@ class Client:
 
         return inner
 
-    def get_channel(self, channel_id: int) -> Optional[Channel]:
+    def get_channel(self, channel_id: int) -> Optional["Channel"]:
         """
         Attempts to get a channel with an id
         of ``channel_id``.
