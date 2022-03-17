@@ -116,7 +116,6 @@ class TextChannel(Messageable):
         state: "ClientState",
         guild: "Guild",
     ) -> None:
-        pprint(payload)
         self._raw_payload = payload
         self._state = state
 

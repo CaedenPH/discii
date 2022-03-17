@@ -59,8 +59,9 @@ class Guild(Snowflake):
             The channel id to search for.
         """
         for channel in self._channels:
-            if channel.id == channel_id:
-                return channel
+            if isinstance(channel, Channel):
+                if channel.id == channel_id:
+                    return channel
 
     async def ban(self, user_id: int) -> None:
         """

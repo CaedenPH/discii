@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from .guild import Guild
 from .message import Message
+from .user import User
 
 if TYPE_CHECKING:
     from .cache import Cache
@@ -120,7 +121,7 @@ class DiscordWebSocket:
                 "op": self.IDENTIFY,
                 "d": {
                     "token": self.token,
-                    "intents": 513,
+                    "intents": 32767,
                     "properties": {
                         "$os": sys.platform,
                         "$browser": "my_library",
@@ -141,13 +142,32 @@ class DiscordWebSocket:
             self._last_heartbeat = time.perf_counter()
             await asyncio.sleep(self._heartbeat_interval)
 
-    def _cache_event(self, name: str, data: Dict[Any, Any]) -> None:
+    async def _request_guild_members(self, guild_id: int) -> None:
+        return await self.socket.send_json(
+            {
+                "op": self.REQUEST_MEMBERS,
+                "d": {
+                    "guild_id": guild_id,
+                    "query": "",
+                    "limit": 0
+                }
+            }
+        )
+
+    async def _cache_event(self, name: str, data: Dict[Any, Any]) -> None:
         if name == "GUILD_CREATE":
             guild = Guild(payload=data, state=self.state)
             self.cache.add_guild(guild)
-        if name == "MESSAGE_CREATE":
+            await self._request_guild_members(guild.id)
+
+        elif name == "MESSAGE_CREATE":
             message = Message(payload=data, state=self.state)
             self.cache.add_message(message)
+
+        elif name == "GUILD_MEMBERS_CHUNK":
+            for _user in data["members"]:
+                user = User(payload=_user["user"], state=self.state)
+                self.cache.add_user(user)
 
     async def _parse_message(self, payload: Dict[Any, Any]) -> None:
         """
@@ -179,7 +199,7 @@ class DiscordWebSocket:
             self.sequence += 1
             await self.client.dispatch(t, d)
 
-        self._cache_event(t, d)
+        await self._cache_event(t, d)
 
         return
         print(payload)  # debugging

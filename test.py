@@ -32,10 +32,10 @@ async def on_message(message: discii.Message):
     if test_channel is not None:
         await test_channel.send("Heyo!")
 
-    message = await message.author.send("hello.")
-    await message.edit("hello...")
+    # message = await message.author.send("hello.")
+    # await message.edit("hello...")
 
-    user = await client.get_user(928410016602525707)
+    user = client.get_user(928410016602525707)
     if user is not None:
         await message.guild.ban(user.id)
 

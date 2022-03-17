@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, TypeVar, Callable, Coroutine, TYPE
 
 from .cache import Cache
 from .converters import _event_to_object
-from .errors import ChannelNotFound, InvalidBotToken, InvalidFunction
+from .errors import ChannelNotFound, InvalidBotToken, InvalidFunction, UserNotFound
 from .gateway import DiscordWebSocket
 from .http import HTTPClient
 from .state import ClientState
@@ -272,4 +272,7 @@ class Client:
         user: :class:`User`
             The user if found, else None
         """
-        return self._cache.get_user(user_id)
+        try:
+            return self._cache.get_user(user_id)
+        except UserNotFound:
+            return None
