@@ -129,7 +129,9 @@ class Cache:
             return guild[0]
         return None
 
-    def get_channel(self, channel_id: int) -> Union[TextChannel, DMChannel, GuildCategory, VoiceChannel]:
+    def get_channel(
+        self, channel_id: int
+    ) -> Union[TextChannel, DMChannel, GuildCategory, VoiceChannel]:
         """
         Searches the internal cache for a channel.
 

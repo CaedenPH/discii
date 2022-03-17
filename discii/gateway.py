@@ -67,19 +67,19 @@ class DiscordWebSocket:
     """
 
     # fmt: off
-    DISPATCH           = 0 
-    HEARTBEAT          = 1 
-    IDENTIFY           = 2 
-    PRESENCE           = 3 
-    VOICE_STATE        = 4 
-    VOICE_PING         = 5 
-    RESUME             = 6 
-    RECONNECT          = 7 
-    REQUEST_MEMBERS    = 8 
-    INVALIDATE_SESSION = 9 
-    HELLO              = 10 
-    HEARTBEAT_ACK      = 11 
-    GUILD_SYNC         = 12 
+    DISPATCH           = 0
+    HEARTBEAT          = 1
+    IDENTIFY           = 2
+    PRESENCE           = 3
+    VOICE_STATE        = 4
+    VOICE_PING         = 5
+    RESUME             = 6
+    RECONNECT          = 7
+    REQUEST_MEMBERS    = 8
+    INVALIDATE_SESSION = 9
+    HELLO              = 10
+    HEARTBEAT_ACK      = 11
+    GUILD_SYNC         = 12
     # fmt: on
 
     token: str
@@ -146,11 +146,7 @@ class DiscordWebSocket:
         return await self.socket.send_json(
             {
                 "op": self.REQUEST_MEMBERS,
-                "d": {
-                    "guild_id": guild_id,
-                    "query": "",
-                    "limit": 0
-                }
+                "d": {"guild_id": guild_id, "query": "", "limit": 0},
             }
         )
 

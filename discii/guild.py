@@ -1,4 +1,3 @@
-from pprint import pprint
 from typing import Dict, Any, List, Optional, Union
 
 from .abc import Snowflake
@@ -33,7 +32,9 @@ class Guild(Snowflake):
         self._state = state
 
         self.id = int(payload["id"])
-        self._channels: List[Channel] = [self._get_channel(payload=data) for data in payload["channels"]]
+        self._channels: List[Channel] = [
+            self._get_channel(payload=data) for data in payload["channels"]
+        ]
         self.member_count = payload["member_count"]
 
     def _get_channel(self, payload: Dict[Any, Any]) -> Optional[Channel]:

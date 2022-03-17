@@ -40,6 +40,13 @@
 >     if test_channel is not None:
 >         await test_channel.send("Heyo!")
 >
+>     message = await message.author.send("hello.")
+>     await message.edit("hello...")
+>
+>     user = client.get_user(928410016602525707)
+>     if user is not None:
+>         await message.guild.ban(user.id)
+>
 > @client.error
 > async def error_handler(coro, error) -> None:
 >    print(coro, error)
