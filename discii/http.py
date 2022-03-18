@@ -114,7 +114,7 @@ class HTTPClient:
         route: :class:`Route`
             The route class which contains the
             method and path of the request.
-        kwargs: :class:`Dict[Any, Any]`
+        kwargs: :class:`Any`
             The dict containing the information
             to be passed into the request. If found,
             the json param will be auto-converted to
@@ -134,6 +134,18 @@ class HTTPClient:
             return await req.json()
 
     async def send_message(self, channel_id: int, **kwargs: Any) -> Message:
+        """
+        Sends a message to a channel.
+
+        Parameters
+        ----------
+        channel_id: :class:`int`
+            The channel id to send the message to.
+        kwargs: :class:`Any`
+            The dict containing the information
+            to be passed into the message.
+        """
+        
         route = Route(
             "POST", "/channels/{channel_id}/messages".format(channel_id=channel_id)
         )
@@ -161,6 +173,21 @@ class HTTPClient:
     async def edit_message(
         self, channel_id: int, *, message_id: int, **kwargs: Any
     ) -> Message:
+        """
+        Edits a message.
+
+        Parameters
+        ----------
+        channel_id: :class:`int`
+            The channel id in which the message
+            exists in.
+        message_id: :class:`int`
+            The message id to edit.
+        kwargs: :class:`Any`
+            The dict containing the information
+            to be passed into the message.
+        """
+        
         route = Route(
             "PATCH",
             "/channels/{channel_id}/messages/{message_id}".format(
@@ -188,6 +215,17 @@ class HTTPClient:
         return message
 
     async def delete_message(self, message_id: int, channel_id: int) -> None:
+        """
+        Deletes a message.
+
+        Parameters
+        ----------
+        channel_id: :class:`int`
+            The channel id to send the message to.
+        message_id: :class:`int`
+            The message to delete.
+        """
+        
         route = Route(
             "DELETE",
             "/channels/{channel_id}/messages/{message_id}".format(
@@ -198,6 +236,22 @@ class HTTPClient:
         await self.request(route)
 
     async def create_dm(self, user_id: int) -> int:
+        """
+        Creates a dm between the client user
+        and the user with id ``user_id``
+
+        Parameters
+        ----------
+        user_id: :class:`int`
+            The user to create the dm with
+            
+        Returns
+        -------
+        payload[id]: :class:`int`
+            The id returned from the api when 
+            creating the dm.
+        """
+        
         route = Route("POST", "/users/@me/channels")
         payload = await self.request(route, json={"recipient_id": user_id})
 
@@ -210,6 +264,17 @@ class HTTPClient:
         return payload["id"]
 
     async def ban_user(self, *, guild_id: int, user_id: int) -> Any:
+        """
+        Bans a user.
+
+        Parameters
+        ----------
+        guild_id: :class:`int`
+            The guild that the user is in.
+        user_id: :class:`int`
+            The user id to ban.
+        """
+        
         route = Route(
             "PUT",
             "/guilds/{guild_id}/bans/{user_id}".format(
