@@ -38,6 +38,19 @@ class Guild(Snowflake):
         self.member_count = payload["member_count"]
 
     def _get_channel(self, payload: Dict[Any, Any]) -> Optional[Channel]:
+        """
+        Gets a channel object from the payload.
+        
+        Parameters
+        ----------
+        payload: :class:`Dict[Any, Any]`
+            The payload to pass into the creating
+            of the channel object.
+        
+        Returns
+        -------
+        the channel object created.
+        """
         _channel_converter = {
             4: GuildCategory,
             2: VoiceChannel,
