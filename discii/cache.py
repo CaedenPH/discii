@@ -46,6 +46,17 @@ class Cache:
         self._dm_channels: List[DMChannel] = []
         self._messages: Deque["Message"] = collections.deque()
 
+    def set_bot_user(self, user: User) -> None:
+        """
+        Sets the bot user.
+
+        Parameters
+        ----------
+        users: :class:`User`
+            The client user.
+        """
+        self.user = user
+
     def add_guild(self, guild: Guild) -> None:
         """
         Adds a guild to the internal guild cache.
@@ -78,7 +89,7 @@ class Cache:
         user: :class:`User`
             The guild to add to the cache.
         """
-        self._users[str(user.id)] = user
+        self._users[user.id] = user
 
     def add_dm_channel(self, channel: DMChannel) -> None:
         """
@@ -105,10 +116,8 @@ class Cache:
         message: :class:`Message`
             The message if found, else `None`
         """
-        message = [message for message in self._messages if message.id == message_id]
-        if message is not None:
-            return message[0]
-        return None
+        message = list(filter(lambda m: m.id == message_id, self._messages))
+        return message[0] if message else None
 
     def get_guild(self, guild_id: int) -> Optional[Guild]:
         """
@@ -124,10 +133,8 @@ class Cache:
         guild: :class:`Guild`
             The guild if found, else None
         """
-        guild = [guild for guild in self._guilds if guild.id == guild_id]
-        if guild is not None:
-            return guild[0]
-        return None
+        guild = list(filter(lambda g: g.id == guild_id, self._guilds))
+        return guild[0] if guild else None
 
     def get_channel(
         self, channel_id: int
@@ -150,7 +157,7 @@ class Cache:
             if channel is not None:
                 return channel
 
-        dm_channel = [dmc for dmc in self._dm_channels if dmc.id == channel_id]
+        dm_channel = list(filter(lambda d: d.id == channel_id, self._dm_channels))
         if dm_channel:
             return dm_channel[0]
         raise ChannelNotFound("Channel with id ``{}`` not found".format(channel_id))
@@ -169,6 +176,6 @@ class Cache:
         user: :class:`User`
             The user if found, else `None`
         """
-        if str(user_id) in self._users:
-            return self._users[str(user_id)]
+        if user_id in self._users:
+            return self._users[user_id]
         raise UserNotFound("User with id ``{}`` not found".format(user_id))

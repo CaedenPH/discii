@@ -59,8 +59,14 @@ class Client:
 
     @property
     def latency(self) -> float:
-        """Returns the clients latency"""
+        """Returns the clients latency."""
         return self.ws.latency
+
+    @property
+    def user(self) -> Optional["User"]:
+        """Returns the user the client is logged
+        in as. If its not logged in it will return None."""
+        return self._cache.user
 
     def _get_state(self) -> ClientState:
         return ClientState(http=self.http, ws=self.ws, cache=self._cache)

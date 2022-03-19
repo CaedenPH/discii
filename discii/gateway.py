@@ -151,15 +151,18 @@ class DiscordWebSocket:
         )
 
     async def _cache_event(self, name: str, data: Dict[Any, Any]) -> None:
+        default_event_cache = {
+            "GUILD_CREATE": {"o": Guild, "f": self.cache.add_guild},
+            "MESSAGE_CREATE": {"o": Message, "f": self.cache.add_message},
+            "READY": {"o": User, "d": data.get("user"), "f": self.cache.set_bot_user},
+        }
+        if name in default_event_cache:
+            event = default_event_cache[name]
+            event_object = event["o"](payload=event.get("d", data), state=self.state)
+            event["f"](event_object)
+
         if name == "GUILD_CREATE":
-            guild = Guild(payload=data, state=self.state)
-            self.cache.add_guild(guild)
-            await self._request_guild_members(guild.id)
-
-        elif name == "MESSAGE_CREATE":
-            message = Message(payload=data, state=self.state)
-            self.cache.add_message(message)
-
+            await self._request_guild_members(data["id"])
         elif name == "GUILD_MEMBERS_CHUNK":
             for _user in data["members"]:
                 user = User(payload=_user["user"], state=self.state)
@@ -198,7 +201,6 @@ class DiscordWebSocket:
         await self._cache_event(t, d)
 
         return
-        print(payload)  # debugging
 
     async def listen(self) -> None:
         """

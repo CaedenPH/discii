@@ -88,7 +88,9 @@ class Embed:
             title=payload.get("title"),
             description=payload.get("description"),
             colour=payload.get("colour"),
-            timestamp=datetime.fromisoformat(payload["timestamp"]),
+            timestamp=datetime.fromisoformat(payload["timestamp"])
+            if payload.get("timestamp")
+            else None,
         )
 
         author: Optional[Dict[str, str]] = payload.get("author")

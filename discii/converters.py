@@ -7,7 +7,11 @@ if TYPE_CHECKING:
 
 
 def _event_to_object(name: str, data: Dict[Any, Any], _state: "ClientState") -> Any:
-    _event_converters: Dict[str, Any] = {"READY": None, "MESSAGE_CREATE": Message}
+    _event_converters: Dict[str, Any] = {
+        "READY": None,
+        "MESSAGE_CREATE": Message,
+        "MESSAGE_DELETE": {"f": _state.cache.get_message, "a": [int(data.get("id", 0))]},
+    }
 
     if name not in _event_converters:
         return None
@@ -16,5 +20,8 @@ def _event_to_object(name: str, data: Dict[Any, Any], _state: "ClientState") -> 
     if converter is None:
         return None
 
-    state = converter(payload=data, state=_state)
+    if isinstance(converter, dict):
+        state = converter["f"](*converter["a"])
+    else:
+        state = converter(payload=data, state=_state)
     return (state,)

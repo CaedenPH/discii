@@ -14,7 +14,7 @@ async def bot_ready() -> None:
 
 @client.on("MESSAGE_CREATE")
 async def on_message(message: discii.Message):
-    print(f"Message detected. Content: {message.content}")
+    # print(f"Message detected. Content: {message.content}")
 
     embed = discii.Embed(
         title="Hello, this is the TITLE.", timestamp=message.timestamp, colour=0xFFFFF
@@ -31,6 +31,12 @@ async def on_message(message: discii.Message):
     test_channel = client.get_channel(953049224516370493)
     if test_channel is not None:
         await test_channel.send("Heyo!")  # type: ignore
+
+
+@client.on("MESSAGE_DELETE")
+async def message_delete(message: discii.Message):
+    print(message)
+    print(message.content)
 
 
 if __name__ == "__main__":
