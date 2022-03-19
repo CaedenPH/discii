@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pprint import pprint
 from typing import Any, Dict, TYPE_CHECKING, List
 
 from .abc import Snowflake
@@ -36,6 +37,7 @@ class Message(Snowflake):
         self._state = state
 
         self.id = int(payload["id"])
+        self.embeds = [Embed.from_json(_embed_json) for _embed_json in payload["embeds"]]
         self.timestamp = datetime.fromisoformat(payload["timestamp"])
         self.content: str = payload["content"]
         self.channel = self._state.cache.get_channel(int(payload["channel_id"]))

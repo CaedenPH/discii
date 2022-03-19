@@ -1,5 +1,3 @@
-# noqa: ignore
-
 import os
 import asyncio
 import discii
@@ -23,16 +21,16 @@ async def on_message(message: discii.Message):
     )
     embed.add_field(name="Hello, I am a field!", value="I am a field value!")
     embed.set_author(name="My name is Discii!")
-
     if message.author.bot:
         return
 
     if message.content.lower() == "hi":
-        await message.reply(embeds=[embed])
+        m = await message.reply(embeds=[embed])
+        print(m.embeds[0]._to_dict())
 
     test_channel = client.get_channel(953049224516370493)
     if test_channel is not None:
-        await test_channel.send("Heyo!")
+        await test_channel.send("Heyo!")  # type: ignore
 
 
 if __name__ == "__main__":

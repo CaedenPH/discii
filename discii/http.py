@@ -145,7 +145,7 @@ class HTTPClient:
             The dict containing the information
             to be passed into the message.
         """
-        
+
         route = Route(
             "POST", "/channels/{channel_id}/messages".format(channel_id=channel_id)
         )
@@ -187,7 +187,7 @@ class HTTPClient:
             The dict containing the information
             to be passed into the message.
         """
-        
+
         route = Route(
             "PATCH",
             "/channels/{channel_id}/messages/{message_id}".format(
@@ -225,7 +225,7 @@ class HTTPClient:
         message_id: :class:`int`
             The message to delete.
         """
-        
+
         route = Route(
             "DELETE",
             "/channels/{channel_id}/messages/{message_id}".format(
@@ -244,14 +244,14 @@ class HTTPClient:
         ----------
         user_id: :class:`int`
             The user to create the dm with
-            
+
         Returns
         -------
         payload[id]: :class:`int`
-            The id returned from the api when 
+            The id returned from the api when
             creating the dm.
         """
-        
+
         route = Route("POST", "/users/@me/channels")
         payload = await self.request(route, json={"recipient_id": user_id})
 
@@ -274,7 +274,7 @@ class HTTPClient:
         user_id: :class:`int`
             The user id to ban.
         """
-        
+
         route = Route(
             "PUT",
             "/guilds/{guild_id}/bans/{user_id}".format(

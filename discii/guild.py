@@ -32,7 +32,7 @@ class Guild(Snowflake):
         self._state = state
 
         self.id = int(payload["id"])
-        self._channels: List[Channel] = [
+        self.channels: List[Optional[Channel]] = [
             self._get_channel(payload=data) for data in payload["channels"]
         ]
         self.member_count = payload["member_count"]
@@ -40,13 +40,13 @@ class Guild(Snowflake):
     def _get_channel(self, payload: Dict[Any, Any]) -> Optional[Channel]:
         """
         Gets a channel object from the payload.
-        
+
         Parameters
         ----------
         payload: :class:`Dict[Any, Any]`
             The payload to pass into the creating
             of the channel object.
-        
+
         Returns
         -------
         the channel object created.
@@ -72,7 +72,7 @@ class Guild(Snowflake):
         channel_id: :class:`int`
             The channel id to search for.
         """
-        for channel in self._channels:
+        for channel in self.channels:
             if isinstance(channel, Channel):
                 if channel.id == channel_id:
                     return channel

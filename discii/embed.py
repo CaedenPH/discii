@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional, Union
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Union, TypedDict
 from datetime import datetime
 
 
@@ -9,6 +11,12 @@ __all__ = (
 # fmt: on
 
 NO_WIDTH_CHAR = "\u200b"
+
+
+class EmbedField(TypedDict):
+    name: Optional[str]
+    value: Optional[str]
+    inline: bool
 
 
 class Embed:
@@ -63,7 +71,43 @@ class Embed:
         self.footer: Optional[Dict[str, Optional[str]]] = None
         self.fields: List[Dict[str, Union[str, bool]]] = []
 
-    def set_thumbnail(self, url: str) -> None:
+    @classmethod
+    def from_json(cls, payload: Dict[Any, Any]) -> Embed:
+        """
+        Create an embed instance from
+        a json object.
+
+        Parameters
+        ----------
+        payload: :class:`Dict[Any, Any]`
+            The json object containing the
+            embed info.
+        """
+
+        embed = cls(
+            title=payload.get("title"),
+            description=payload.get("description"),
+            colour=payload.get("colour"),
+            timestamp=datetime.fromisoformat(payload["timestamp"]),
+        )
+
+        author: Optional[Dict[str, str]] = payload.get("author")
+        if author is not None:
+            embed.set_author(name=author["name"], icon_url=author.get("icon_url"))
+
+        fields: Optional[List[EmbedField]] = payload.get("fields")
+        if fields:
+            [
+                embed.add_field(
+                    name=field.get("name"),
+                    value=field.get("value"),
+                    inline=field.get("inline", False),
+                )
+                for field in fields
+            ]
+        return embed
+
+    def set_thumbnail(self, *, url: str) -> None:
         """
         Sets the thumnail field.
 
@@ -74,7 +118,7 @@ class Embed:
         """
         self.thumbnail = {"url": url}
 
-    def set_video(self, url: str) -> None:
+    def set_video(self, *, url: str) -> None:
         """
         Sets the video field.
 
@@ -85,7 +129,7 @@ class Embed:
         """
         self.video = {"url": url}
 
-    def set_image(self, url: str) -> None:
+    def set_image(self, *, url: str) -> None:
         """
         Sets the image field.
 
@@ -96,7 +140,7 @@ class Embed:
         """
         self.image = {"url": url}
 
-    def set_author(self, name: str, icon_url: str = None) -> None:
+    def set_author(self, *, name: str, icon_url: str = None) -> None:
         """
         Sets the author field.
 
@@ -109,7 +153,7 @@ class Embed:
         """
         self.author = {"name": name, "icon_url": icon_url}
 
-    def set_footer(self, text: str, icon_url: str = None) -> None:
+    def set_footer(self, *, text: str, icon_url: str = None) -> None:
         """
         Sets the footer field.
 
@@ -123,7 +167,11 @@ class Embed:
         self.footer = {"text": text, "icon_url": icon_url}
 
     def add_field(
-        self, name: str = NO_WIDTH_CHAR, value: str = NO_WIDTH_CHAR, inline: bool = False
+        self,
+        *,
+        name: Optional[str] = None,
+        value: Optional[str] = None,
+        inline: bool = False,
     ) -> None:
         """
         Adds a field to the embed.
@@ -137,7 +185,13 @@ class Embed:
             The field value. Defaults to
             an ascii no width char.
         """
-        self.fields.append({"name": name, "value": value, "inline": inline})
+        self.fields.append(
+            {
+                "name": name or NO_WIDTH_CHAR,
+                "value": value or NO_WIDTH_CHAR,
+                "inline": inline,
+            }
+        )
 
     def _to_dict(self) -> Dict[str, Any]:
         """
