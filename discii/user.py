@@ -5,6 +5,7 @@ from .abc import Messageable
 if TYPE_CHECKING:
     from .state import ClientState
 
+
 # fmt: off
 __all__ = (
     'User',

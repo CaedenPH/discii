@@ -21,12 +21,12 @@ async def on_message(message: discii.Message):
     )
     embed.add_field(name="Hello, I am a field!", value="I am a field value!")
     embed.set_author(name="My name is Discii!")
+
     if message.author.bot:
         return
 
     if message.content.lower() == "hi":
-        m = await message.reply(embeds=[embed])
-        print(m.embeds[0]._to_dict())
+        await message.reply(embeds=[embed])
 
     test_channel = client.get_channel(953049224516370493)
     if test_channel is not None:
@@ -36,7 +36,6 @@ async def on_message(message: discii.Message):
 @client.on("MESSAGE_DELETE")
 async def message_delete(message: discii.Message):
     print(message)
-    print(message.content)
 
 
 if __name__ == "__main__":

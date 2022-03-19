@@ -7,8 +7,8 @@ if TYPE_CHECKING:
 
 # fmt: off
 __all__ = (
-    "Snowflake",
-    "Messageable",
+    'Snowflake',
+    'Messageable',
 )
 # fmt: on
 

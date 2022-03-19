@@ -34,7 +34,8 @@
 >     embed.set_author(name="My name is Discii!")
 >
 >     if not message.author.bot:
->         await message.reply(embeds=[embed])
+>         m = await message.reply(embeds=[embed])
+>         print([embed._to_dict() for embed in m.embeds])
 >
 >     test_channel = client.get_channel(953049224516370493)
 >     if test_channel is not None:
@@ -46,6 +47,10 @@
 >     user = client.get_user(928410016602525707)
 >     if user is not None:
 >         await message.guild.ban(user.id)
+>
+> @client.on("MESSAGE_DELETE")
+> async def message_delete(message: discii.Message):
+>    print(message)
 >
 > @client.error
 > async def error_handler(coro, error) -> None:

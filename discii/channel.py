@@ -7,13 +7,16 @@ if TYPE_CHECKING:
     from .state import ClientState
     from .user import User
 
+
+# fmt: off
 __all__ = (
-    "ChannelType",
-    "GuildCategory",
-    "TextChannel",
-    "DMChannel",
-    "Channel",
+    'ChannelType',
+    'GuildCategory',
+    'TextChannel',
+    'DMChannel',
+    'Channel',
 )
+# fmt: on
 
 
 class ChannelType:

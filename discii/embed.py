@@ -6,9 +6,11 @@ from datetime import datetime
 
 # fmt: off
 __all__ = (
+    'EmbedField',
     'Embed',
 )
 # fmt: on
+
 
 NO_WIDTH_CHAR = "\u200b"
 

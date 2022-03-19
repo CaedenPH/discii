@@ -1,8 +1,11 @@
 # fmt: off
 __all__ = (
+    'DisciiException',
     'InvalidBotToken',
     'InvalidFunction',
-
+    'SnowflakeNotFound',
+    'UserNotFound',
+    'ChannelNotFound',
 )
 # fmt: on
 

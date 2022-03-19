@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .client import Client
     from .state import ClientState
 
+
 # fmt: off
 __all__ = (
     'DiscordWebSocket',
