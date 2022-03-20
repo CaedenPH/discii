@@ -1,6 +1,6 @@
 import discii
 
-from typing import TypeVar, Union, Optional, List, Dict, Coroutine, Callable, Any
+from typing import TypeVar, Tuple, Optional, List, Dict, Coroutine, Callable, Any
 
 from .core import Command, Context
 
@@ -36,10 +36,11 @@ class Bot(discii.Client):
         self.prefixes: List[str] = prefixes
         self._all_commands: Dict[str, Command] = {}
 
-    def command(self, names: List[str]) -> Any:
+    def command(self, *, names: List[str], enforce_types: bool = False) -> Any:
         """ """
 
         def inner(coro: Coro) -> Coro:
+            coro._enforce_types = enforce_types
             command = Command(coro, names=names)
 
             for name in names:
@@ -49,23 +50,38 @@ class Bot(discii.Client):
 
         return inner
 
-    def _get_command(self, text: str) -> Optional[Command]:
+    def _get_command(self, text: str) -> Optional[Tuple[Command, List[str]]]:
         for prefix in self.prefixes:
             if text.startswith(prefix):
                 break
         else:
             return None
 
-        command = text[len(prefix):]
-        if command in self._all_commands:
-            return self._all_commands[command]
+        command = text[len(prefix) :].split()  # noqa: E203
+        if command[0] in self._all_commands:
+            return (self._all_commands[command[0]], command[1:])
 
-    def _get_args(self, command: Command, text: str) -> Optional[List[Any]]:
+    def _get_args(self, command: Command, message_args: List[str]) -> Optional[List[Any]]:
         if not command.args:
             return None
 
+        if len(message_args) <= len(
+            [
+                command.args[c]["optional"]
+                for c in command.args
+                if not command.args[c]["optional"]
+            ]
+        ):
+            return None  # TODO: raise error
+
+        for c, m in zip(command.args, message_args):
+            ...  # TODO: raise error is type is not correct.
+
+        print(message_args)
+        return message_args
+
     def get_context(self, command: Command, message: discii.Message) -> Context:
-        context = Context.from_message(command, message)
+        context = Context.from_message(message, command)
         return context
 
     async def process_commands(self, message: discii.Message):
@@ -73,11 +89,13 @@ class Bot(discii.Client):
         if command is None:
             return
 
+        command, message_args = command
+
         context = self.get_context(command, message)
-        args = self._get_args(command, message.text)
+        args = self._get_args(command, message_args)
 
         if args:
-            await context.execute(context, args)
+            await context.execute(context, *args)
         else:
             await context.execute(context)
 

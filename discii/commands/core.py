@@ -14,30 +14,36 @@ __all__ = (
 
 def _parse_args(
     coro: Callable[..., Coroutine[Any, Any, Any]]
-) -> List[Dict[str, Dict[str, Any]]]:
+) -> Dict[str, Dict[str, Any]]:
     signature = inspect.signature(coro)
 
-    return [
-        {param: signature.parameters[param].annotation}
-        for param in signature.parameters
-        if param not in "context"
-    ]
+    args = {}
+    for param in signature.parameters:
+        if param not in "context":
+            args[param] = {
+                "type": signature.parameters[param].annotation,
+                "optional": False
+                if signature.parameters[param].default is inspect._empty
+                else True,
+            }
+    return args
 
 
 class Command:
     def __init__(self, coro, *, names: List[str]) -> None:
         self.coro = coro
-        self.args = _parse_args(coro)
+        self.args: Dict[str, Dict[str, Any]] = _parse_args(coro)
         self.names = names
 
 
 class Context(discii.Messageable):
-    def __init__(self, *, command: Command, message: discii.Message) -> None:
+    def __init__(self, *, message: discii.Message, command: Command) -> None:
         self.command = command
         self.message = message
+        self._state = message._state
 
     @classmethod
-    def from_message(cls, command: Command, message: discii.Message):
+    def from_message(cls, message: discii.Message, command: Command):
         context = cls(command=command, message=message)
         return context
 
@@ -45,7 +51,6 @@ class Context(discii.Messageable):
         return self.message.channel.id
 
     async def execute(self, *args):
-        print(args)
         coro = self.command.coro
 
         try:
