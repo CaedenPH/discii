@@ -121,7 +121,7 @@ class Client:
             handler = self.error_handlers["global"]
             return await handler(error, coro)
 
-        print(f"Ignoring exception in {coro.__name__}", file=sys.stderr)
+        print(f"Exception in {coro.__name__}", file=sys.stderr)
         traceback.print_exc()
 
     async def dispatch(self, name: str, data: Dict[Any, Any]) -> None:
@@ -140,7 +140,11 @@ class Client:
             return
 
         for coro in self.events[name]:
-            args = self._parse_event_data(name, data) if not coro.__raw else data
+            args = (
+                self._parse_event_data(name, data)
+                if not getattr(coro, "__raw", False)
+                else data
+            )
             self.loop.create_task(self._run_event(coro, *args))
 
     async def start(
@@ -189,7 +193,7 @@ class Client:
         """
         self.error_handlers["global"] = coro
 
-    def on(self, event_name: str, *, raw: bool = False):
+    def on(self, event_name: str, *, raw: bool = False) -> Any:
         """
         Registers a coroutine as an event.
 

@@ -44,22 +44,20 @@ class Messageable(Snowflake):
     async def _get_channel_id(self) -> int:
         raise NotImplementedError
 
-    async def send(
-        self, content: str = None, *, embeds: List["Embed"] = None
-    ) -> "Message":
+    async def send(self, text: str = None, *, embeds: List["Embed"] = None) -> "Message":
         """
         Sends a message to the channel.
 
         Parameters
         ----------
-        content: :class:`str`
-            The content to send to the channel.
+        text: :class:`str`
+            The text to send to the channel.
         embeds: :class:`List[Embed]`
             The message embeds.
         """
         channel_id = await self._get_channel_id()
         return await self._state.http.send_message(
             channel_id,
-            content=content,
+            text=text,
             embeds=embeds,
         )

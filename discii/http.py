@@ -157,7 +157,7 @@ class HTTPClient:
             embeds = None
 
         payload = {
-            "content": kwargs["content"] or None,
+            "content": kwargs["text"] or None,
             "embeds": embeds,
             "message_reference": kwargs.get("message_reference", None),
         }
@@ -202,7 +202,7 @@ class HTTPClient:
             embeds = None
 
         payload = {
-            "content": kwargs["content"] or None,
+            "content": kwargs["text"] or None,
             "embeds": embeds,
         }
 

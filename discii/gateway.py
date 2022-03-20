@@ -4,9 +4,10 @@ import asyncio
 import json
 import sys
 import time
+import types
 
 from aiohttp import ClientWebSocketResponse, WSMsgType
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, Optional, Union, TYPE_CHECKING, TypedDict
 
 from .guild import Guild
 from .message import Message
@@ -152,15 +153,16 @@ class DiscordWebSocket:
         )
 
     async def _cache_event(self, name: str, data: Dict[Any, Any]) -> None:
-        default_event_cache = {
+        events: Dict[str, Any] = {
             "GUILD_CREATE": {"o": Guild, "f": self.cache.add_guild},
             "MESSAGE_CREATE": {"o": Message, "f": self.cache.add_message},
             "READY": {"o": User, "d": data.get("user"), "f": self.cache.set_bot_user},
         }
-        if name in default_event_cache:
-            event = default_event_cache[name]
-            event_object = event["o"](payload=event.get("d", data), state=self.state)
-            event["f"](event_object)
+
+        if name in events:
+            dict = events[name]
+            obj = dict["o"](payload=dict.get("d", data), state=self.state)
+            dict["f"](obj)
 
         if name == "GUILD_CREATE":
             await self._request_guild_members(data["id"])
@@ -186,22 +188,17 @@ class DiscordWebSocket:
         if op == self.HEARTBEAT_ACK:
             self.latency = time.perf_counter() - self._last_heartbeat
             return
-
-        if op == self.DISPATCH and t == "READY":
+        elif op == self.DISPATCH and t == "READY":
             self.session_id = d["session_id"]
-
-        if op == self.HELLO:
+        elif op == self.HELLO:
             await self.identify()
             self._heartbeat_interval = d["heartbeat_interval"] / 1000
             self.loop.create_task(self.keep_alive())
-
-        if op == self.DISPATCH:
+        elif op == self.DISPATCH:
             self.sequence += 1
             await self.client.dispatch(t, d)
 
         await self._cache_event(t, d)
-
-        return
 
     async def listen(self) -> None:
         """

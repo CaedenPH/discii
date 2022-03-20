@@ -38,7 +38,7 @@ class Message(Snowflake):
         self.id = int(payload["id"])
         self.embeds = [Embed.from_json(_embed_json) for _embed_json in payload["embeds"]]
         self.timestamp = datetime.fromisoformat(payload["timestamp"])
-        self.content: str = payload["content"]
+        self.text: str = payload["content"]
         self.channel = self._state.cache.get_channel(int(payload["channel_id"]))
         self.guild = self.channel.guild
         self.author = Member(payload=payload["author"], state=self._state)
@@ -51,21 +51,21 @@ class Message(Snowflake):
             message_id=self.id, channel_id=self.channel.id
         )
 
-    async def edit(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
+    async def edit(self, text: str = None, *, embeds: List[Embed] = None) -> Message:
         """
         Edits the message.
 
         Parameters
         ----------
-        content: :class:`str`
-            The content to edit to.
+        text: :class:`str`
+            The text to edit to.
         embeds: :class:`List[Embed]`
             The embeds to add to the message.
         """
         return await self._state.http.edit_message(
             self.channel.id,
             message_id=self.id,
-            content=content,
+            text=text,
             embeds=embeds,
         )
 

@@ -27,7 +27,7 @@
 >
 > @client.on("MESSAGE_CREATE")
 > async def on_message(message: discii.Message):
->     print(f"Message detected. Message content: {message.content}")
+>     print(f"Message detected. Message text: {message.text}")
 >
 >     embed = discii.Embed(title="Hello, this is the TITLE.", timestamp=message.timestamp, colour=0xfffff)
 >     embed.add_field(name="Hello, I am a field!", value="I am a field value!")
@@ -53,10 +53,20 @@
 >    print(message)
 >
 > @client.error
-> async def error_handler(coro, error) -> None:
->    print(coro, error)
+> async def error_handler(error, coro) -> None:
+>    print(error, coro)
 >
 > if __name__ == "__main__":
 >     load_dotenv()
 >     asyncio.run(client.start(os.environ["BOT_TOKEN"]))
 > ```
+
+**Event list**:
+- `READY`
+  args: `None`
+- `MESSAGE_CREATE`
+  args: `discii.Message`
+- `MESSAGE_DELETE`
+  args: `discii.Message`
+- `error`
+  args: `Any`, `typing.Coroutine`

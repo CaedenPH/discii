@@ -208,6 +208,7 @@ class Embed:
             The json-parsonable dict representing
             the current embed state.
         """
+
         _dict = {
             "title": self.title,
             "description": self.description,
