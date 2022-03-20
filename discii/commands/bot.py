@@ -65,7 +65,7 @@ class Bot(discii.Client):
         if not command.args:
             return None
 
-        if len(message_args) <= len(
+        if len(message_args) < len(
             [
                 command.args[c]["optional"]
                 for c in command.args
@@ -74,11 +74,16 @@ class Bot(discii.Client):
         ):
             return None  # TODO: raise error
 
-        for c, m in zip(command.args, message_args):
-            ...  # TODO: raise error is type is not correct.
+        args = []
 
-        print(message_args)
-        return message_args
+        for c, m in zip(command.args, message_args):
+            try:
+                _type = command.args[c]["type"]
+                args.append(_type(m))
+            except Exception:
+                return None  # TODO: raise error
+
+        return args
 
     def get_context(self, command: Command, message: discii.Message) -> Context:
         context = Context.from_message(message, command)

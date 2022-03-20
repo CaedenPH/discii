@@ -56,4 +56,4 @@ class Context(discii.Messageable):
         try:
             await coro(*args)
         except Exception as e:
-            print(e)
+            print(e)  # TODO: raise error
