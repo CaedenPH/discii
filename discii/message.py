@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, TYPE_CHECKING, List
+from typing import Optional, Any, Dict, TYPE_CHECKING, List
 
-from .abc import Snowflake
+from .abc import Repliable
 from .embed import Embed
 from .user import Member
 
 if TYPE_CHECKING:
+    from .guild import Guild
     from .state import ClientState
 
 
@@ -18,7 +19,7 @@ __all__ = (
 # fmt: on
 
 
-class Message(Snowflake):
+class Message(Repliable):
     """
     Represents a discord message.
 
@@ -40,7 +41,7 @@ class Message(Snowflake):
         self.timestamp = datetime.fromisoformat(payload["timestamp"])
         self.text: str = payload["content"]
         self.channel = self._state.cache.get_channel(int(payload["channel_id"]))
-        self.guild = self.channel.guild
+        self.guild: Optional["Guild"] = self.channel.guild
         self.author = Member(payload=payload["author"], state=self._state)
 
     async def delete(self) -> None:
@@ -63,29 +64,5 @@ class Message(Snowflake):
             The embeds to add to the message.
         """
         return await self._state.http.edit_message(
-            self.channel.id,
-            message_id=self.id,
-            text=text,
-            embeds=embeds,
-        )
-
-    async def reply(self, content: str = None, *, embeds: List[Embed] = None) -> Message:
-        """
-        Replies to the message.
-
-        Parameters
-        ----------
-        content: :class:`str`
-            The content to send.
-        embeds: :class:`List[Embed]`
-            The message embeds.
-        """
-        return await self._state.http.send_message(
-            self.channel.id,
-            content=content,
-            embeds=embeds,
-            message_reference={
-                "message_id": self.id,
-                "guild_id": getattr(self.guild, "id", None),
-            },
+            self.channel.id, message_id=self.id, text=text, embeds=embeds
         )

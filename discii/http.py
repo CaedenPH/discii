@@ -201,10 +201,7 @@ class HTTPClient:
         else:
             embeds = None
 
-        payload = {
-            "content": kwargs["text"] or None,
-            "embeds": embeds,
-        }
+        payload = {"content": kwargs["text"] or None, "embeds": embeds}
 
         try:
             raw_message = await self.request(route, json=payload)
@@ -230,8 +227,7 @@ class HTTPClient:
         route = Route(
             "DELETE",
             "/channels/{channel_id}/messages/{message_id}".format(
-                channel_id=channel_id,
-                message_id=message_id,
+                channel_id=channel_id, message_id=message_id
             ),
         )
         await self.request(route)

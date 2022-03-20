@@ -4,10 +4,9 @@ import asyncio
 import json
 import sys
 import time
-import types
 
 from aiohttp import ClientWebSocketResponse, WSMsgType
-from typing import Any, Dict, Optional, Union, TYPE_CHECKING, TypedDict
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from .guild import Guild
 from .message import Message

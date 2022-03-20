@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .cache import Cache
+    from .client import Client
     from .http import HTTPClient
     from .gateway import DiscordWebSocket
 
@@ -20,6 +21,8 @@ class ClientState:
 
     Parameters
     ----------
+    client: :class:`Client`
+        The client or bot instance.
     http: :class:`HTTPClient`
         The http client which all requests
         are sent through.
@@ -34,8 +37,14 @@ class ClientState:
     """
 
     def __init__(
-        self, *, http: "HTTPClient", ws: "DiscordWebSocket", cache: "Cache"
+        self,
+        client: "Client",
+        *,
+        http: "HTTPClient",
+        ws: "DiscordWebSocket",
+        cache: "Cache"
     ) -> None:
+        self.client = client
         self.http = http
         self.loop = http.loop
         self.ws = ws

@@ -17,6 +17,11 @@ async def add(context: commands.Context, num1: int, num2: int):
     await context.send(f"{num1 + num2 = }")
 
 
+@bot.error(command=True)
+async def command_error(context: commands.Context, error):
+    print(context, error)
+
+
 if __name__ == "__main__":
     load_dotenv()
     asyncio.run(bot.start(os.environ["BOT_TOKEN"]))

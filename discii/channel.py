@@ -112,11 +112,7 @@ class TextChannel(Messageable):
     type: int = ChannelType.GUILD_TEXT
 
     def __init__(
-        self,
-        *,
-        payload: Dict[Any, Any],
-        state: "ClientState",
-        guild: "Guild",
+        self, *, payload: Dict[Any, Any], state: "ClientState", guild: "Guild"
     ) -> None:
         self._raw_payload = payload
         self._state = state
@@ -157,11 +153,7 @@ class VoiceChannel(Snowflake):
     type: int = ChannelType.GUILD_VOICE
 
     def __init__(
-        self,
-        *,
-        payload: Dict[Any, Any],
-        state: "ClientState",
-        guild: "Guild",
+        self, *, payload: Dict[Any, Any], state: "ClientState", guild: "Guild"
     ) -> None:
         self._raw_payload = payload
         self._state = state

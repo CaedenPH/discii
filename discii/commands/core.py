@@ -1,5 +1,6 @@
 import inspect
 import discii
+import discii.abc as abc
 
 from typing import Dict, List, Coroutine, Callable, Any
 
@@ -36,7 +37,7 @@ class Command:
         self.names = names
 
 
-class Context(discii.Messageable):
+class Context(abc.Messageable, abc.Repliable):
     def __init__(self, *, message: discii.Message, command: Command) -> None:
         self.command = command
         self.message = message
@@ -52,8 +53,4 @@ class Context(discii.Messageable):
 
     async def execute(self, *args):
         coro = self.command.coro
-
-        try:
-            await coro(*args)
-        except Exception as e:
-            print(e)  # TODO: raise error
+        await coro(*args)

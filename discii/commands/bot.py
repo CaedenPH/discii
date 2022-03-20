@@ -1,4 +1,6 @@
 import discii
+import sys
+import traceback
 
 from typing import TypeVar, Tuple, Optional, List, Dict, Coroutine, Callable, Any
 
@@ -76,7 +78,7 @@ class Bot(discii.Client):
 
         args = []
 
-        for c, m in zip(command.args, message_args):
+        for (c, m) in zip(command.args, message_args):
             try:
                 _type = command.args[c]["type"]
                 args.append(_type(m))
@@ -89,20 +91,24 @@ class Bot(discii.Client):
         context = Context.from_message(message, command)
         return context
 
+    async def on_command_error(self, context: Context, error: Any) -> None:
+        for handler in self.error_handlers["COMMAND"]:
+            await handler(context, error)
+
     async def process_commands(self, message: discii.Message):
         command = self._get_command(message.text)
         if command is None:
             return
 
-        command, message_args = command
+        (command, message_args) = command
 
         context = self.get_context(command, message)
-        args = self._get_args(command, message_args)
+        args = self._get_args(command, message_args) or ()
 
-        if args:
-            await context.execute(context, *args)
-        else:
-            await context.execute(context)
+        try:
+            await context.execute(*args)
+        except Exception as e:
+            await self.on_command_error(context, e)
 
     async def _message_create(self, message: discii.Message) -> None:
         await self.process_commands(message)

@@ -55,7 +55,9 @@ class Client:
 
         self._cache = Cache()
         self.events: Dict[str, List[Callable[..., Coroutine[Any, Any, Any]]]] = {}
-        self.error_handlers: Dict[str, Callable[..., Coroutine[Any, Any, Any]]] = {}
+        self.error_handlers: Dict[
+            str, List[Callable[..., Coroutine[Any, Any, Any]]],
+        ] = {"COMMAND": [], "EVENT": []}
 
     @property
     def latency(self) -> float:
@@ -69,7 +71,7 @@ class Client:
         return self._cache.user
 
     def _get_state(self) -> ClientState:
-        return ClientState(http=self.http, ws=self.ws, cache=self._cache)
+        return ClientState(self, http=self.http, ws=self.ws, cache=self._cache)
 
     def _parse_event_data(self, name: str, data: Dict[Any, Any]) -> Any:
         """
@@ -114,15 +116,12 @@ class Client:
     async def on_error(
         self, error: Any, coro: Callable[..., Coroutine[Any, Any, Any]]
     ) -> None:
-        if coro.__name__ in self.error_handlers:
-            handler = self.error_handlers[coro.__name__]
-            return await handler(error)
-        if "global" in self.error_handlers:
-            handler = self.error_handlers["global"]
-            return await handler(error, coro)
-
-        print(f"Exception in {coro.__name__}", file=sys.stderr)
-        traceback.print_exc()
+        if not (event := self.error_handlers["EVENT"]):
+            for handler in event:
+                await handler(coro, error)
+        else:
+            print(f"Exception in {coro.__name__}", file=sys.stderr)
+            traceback.print_exc()
 
     async def dispatch(self, name: str, data: Dict[Any, Any]) -> None:
         """
@@ -181,7 +180,7 @@ class Client:
 
         await self.ws.listen()  # blocking to keep code running.
 
-    def error(self, coro: Callable[..., Coroutine[Any, Any, Any]]) -> None:
+    def error(self, *, command: bool = False) -> Any:
         """
         Decorator to register a global event
         handler.
@@ -191,7 +190,18 @@ class Client:
         coro: :class:`Coro`
             The coroutine to register as the error handler.
         """
-        self.error_handlers["global"] = coro
+
+        def inner(coro: Coro) -> Coro:
+            if not asyncio.iscoroutinefunction(coro):
+                raise InvalidFunction("Your event must be a coroutine.")
+
+            if command:
+                self.error_handlers["COMMAND"].append(coro)
+            else:
+                self.error_handlers["EVENT"].append(coro)
+            return coro
+
+        return inner
 
     def on(self, event_name: str, *, raw: bool = False) -> Any:
         """

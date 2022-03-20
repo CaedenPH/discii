@@ -1,14 +1,13 @@
 <div align='center'>
   <img src = "assets/discii.png" width = "200" height="200">
-
   <br>
 
   `discii` - the lightweight discord wrapper.
 
   <br>
-
 </div>
 
+*If you have any features you would like me to implement make sure to make a pull request, an issue, or contact me on discord.*
 
 **Example Client:**
 > ```py
@@ -52,13 +51,42 @@
 > async def message_delete(message: discii.Message):
 >    print(message)
 >
-> @client.error
-> async def error_handler(error, coro) -> None:
+> @client.error()
+> async def event_error(error, coro) -> None:
 >    print(error, coro)
 >
 > if __name__ == "__main__":
 >     load_dotenv()
 >     asyncio.run(client.start(os.environ["BOT_TOKEN"]))
+> ```
+
+**Example Bot**:
+> ```py
+> import os
+> import asyncio
+>
+> from dotenv import load_dotenv
+> from discii import commands
+>
+> bot = commands.Bot(prefixes=["."])
+>
+>
+> @bot.command(names=["ping"])
+> async def ping(context: commands.Context):
+>     await context.send(f"The bots ping is **{round(bot.latency*1000)}**")
+>
+>
+> @bot.command(names=["add"])
+> async def add(context: commands.Context, num1: int, num2: int):
+>     await context.send(f"{num1 + num2 = }")
+>
+> @bot.error(command=True)
+> async def command_error(context: commands.Context, error):
+>     print(context, error)
+>
+> if __name__ == "__main__":
+>     load_dotenv()
+>     asyncio.run(bot.start(os.environ["BOT_TOKEN"]))
 > ```
 
 **Event list**:

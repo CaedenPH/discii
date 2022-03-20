@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional
 
 from .abc import Snowflake
 from .channel import Channel, GuildCategory, TextChannel, VoiceChannel
@@ -49,11 +49,7 @@ class Guild(Snowflake):
         -------
         the channel object created.
         """
-        _channel_converter = {
-            4: GuildCategory,
-            2: VoiceChannel,
-            0: TextChannel,
-        }
+        _channel_converter = {4: GuildCategory, 2: VoiceChannel, 0: TextChannel}
         channel = _channel_converter.get(payload["type"])
 
         if channel is not None:
