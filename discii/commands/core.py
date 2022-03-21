@@ -2,10 +2,10 @@ import inspect
 import discii
 import discii.abc as _abc
 
-from typing import TYPE_CHEKCING, Dict, List, Coroutine, Callable, Any
+from typing import TYPE_CHECKING, Dict, List, Coroutine, Callable, Any
 
 if TYPE_CHECKING:
-    from discii.state import ClientState 
+    from discii.state import ClientState
 
 # fmt: off
 __all__ = (
@@ -33,21 +33,23 @@ def _parse_args(
 
 
 class Command:
-     """
-     Represents a command.
-     
-     Parameters
-     ----------
-     coro: :class:`Callable[..., Coroutine[Any, Any, Any]]`
-        The coroutine function that is 
-        bound to the command. Similiar to 
-        event bindings.
-     names: :class:`List[str]`
-        The names that the command is invokable 
-        from.
-     """
-        
-    def __init__(self, coro: Callable[..., Coroutine[Any, Any, Any]], *, names: List[str]) -> None:
+    """
+    Represents a command.
+
+    Parameters
+    ----------
+    coro: :class:`Callable[..., Coroutine[Any, Any, Any]]`
+    The coroutine function that is
+    bound to the command. Similiar to
+    event bindings.
+    names: :class:`List[str]`
+    The names that the command is invokable
+    from.
+    """
+
+    def __init__(
+        self, coro: Callable[..., Coroutine[Any, Any, Any]], *, names: List[str]
+    ) -> None:
         self.coro = coro
         self.args: Dict[str, Dict[str, Any]] = _parse_args(coro)
         self.names = names
@@ -56,25 +58,25 @@ class Command:
 class Context(_abc.Messageable, _abc.Repliable):
     """
     Represents a `Context` object.
-    
+
     Parameters
     ----------
     message: :class:`discii.Message`
-        The message object that is bound 
+        The message object that is bound
         to the context instance.
     command: :class:`Command`
         The command bound to the context
         instance.
-    
+
     Attributes
     ----------
     _state: :class:`ClientState`
-        The client state which methods can be 
-        called off of.  
+        The client state which methods can be
+        called off of.
     """
+
     _state: "ClientState"
-        
-        
+
     def __init__(self, *, message: discii.Message, command: Command) -> None:
         self.command = command
         self.message = message

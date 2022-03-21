@@ -56,7 +56,8 @@ class Client:
         self._cache = Cache()
         self.events: Dict[str, List[Callable[..., Coroutine[Any, Any, Any]]]] = {}
         self.error_handlers: Dict[
-            str, List[Callable[..., Coroutine[Any, Any, Any]]],
+            str,
+            List[Callable[..., Coroutine[Any, Any, Any]]],
         ] = {"COMMAND": [], "EVENT": []}
 
     @property
@@ -116,12 +117,13 @@ class Client:
     async def on_error(
         self, error: Any, coro: Callable[..., Coroutine[Any, Any, Any]]
     ) -> None:
-        if not (event := self.error_handlers["EVENT"]):
-            for handler in event:
-                await handler(coro, error)
-        else:
-            print(f"Exception in {coro.__name__}", file=sys.stderr)
-            traceback.print_exc()
+        """
+        The default on_error method to be overrided
+        by declaring a global error handler.
+        """
+
+        print(f"Exception in :command:``{coro.__name__}``", file=sys.stderr)
+        traceback.print_exc()
 
     async def dispatch(self, name: str, data: Dict[Any, Any]) -> None:
         """
@@ -187,8 +189,10 @@ class Client:
 
         Parameters
         ----------
-        coro: :class:`Coro`
-            The coroutine to register as the error handler.
+        command: :class:`bool`
+            Registers the error handler as a
+            command error handler. Only compatible
+            for `Bot` instances.
         """
 
         def inner(coro: Coro) -> Coro:
@@ -196,9 +200,12 @@ class Client:
                 raise InvalidFunction("Your event must be a coroutine.")
 
             if command:
-                self.error_handlers["COMMAND"].append(coro)
+                raise TypeError(
+                    "A command_error handler can only be registered to a Bot instance."
+                )
             else:
-                self.error_handlers["EVENT"].append(coro)
+                setattr(self, "on_error", coro)
+
             return coro
 
         return inner

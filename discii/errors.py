@@ -32,12 +32,13 @@ class UserNotFound(SnowflakeNotFound):
 
 class ChannelNotFound(SnowflakeNotFound):
     """Raised when a user tried to get a non-existant channel."""
-    
+
+
 class InvalidArgumentType(DisciiException):
-    """Raised when a command is called but ``enforce_types`` is ``True`` 
+    """Raised when a command is called but ``enforce_types`` is ``True``
     and the argument types were invalid."""
-    
+
+
 class NotEnoughArguments(DisciiException):
-    """Raised when a command is called but there weren't enough arguments passed 
+    """Raised when a command is called but there weren't enough arguments passed
     into the command invokation."""
-    

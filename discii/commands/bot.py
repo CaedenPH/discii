@@ -1,11 +1,12 @@
+import asyncio
 import discii
 import sys
 import traceback
 
 from typing import TypeVar, Tuple, Optional, List, Dict, Coroutine, Callable, Any
 
+from discii.errors import InvalidFunction, InvalidArgumentType, NotEnoughArguments
 from .core import Command, Context
-from .errors import InvalidArgumentType, NotEnoughArguments
 
 
 # fmt: off
@@ -39,11 +40,36 @@ class Bot(discii.Client):
         self.prefixes: List[str] = prefixes
         self._all_commands: Dict[str, Command] = {}
 
+    def error(self, *, command: bool = False) -> Any:
+        """
+        Overrides the default error handler.
+
+        Parameters
+        ----------
+        command: :class:`bool`
+            Registers the error handler as a
+            command error handler. Only compatible
+            for `Bot` instances.
+        """
+
+        def inner(coro: Coro) -> Coro:
+            if not asyncio.iscoroutinefunction(coro):
+                raise InvalidFunction("Your event must be a coroutine.")
+
+            if command:
+                setattr(self, "on_command_error", coro)
+            else:
+                setattr(self, "on_error", coro)
+
+            return coro
+
+        return inner
+
     def command(self, *, names: List[str], enforce_types: bool = False) -> Any:
         """
         A decorator that registers commands
         to the bot.
-        
+
         Parameters
         ----------
         names: :class:`List[str]`
@@ -99,53 +125,55 @@ class Bot(discii.Client):
                 raise InvalidArgumentType
 
         return args
-    
-     async def _message_create(self, message: discii.Message) -> None:
+
+    async def _message_create(self, message: discii.Message) -> None:
         await self.process_commands(message)
 
     def get_context(self, command: Command, message: discii.Message) -> Context:
         """
-        Returns a context instance from a 
+        Returns a context instance from a
         message and command object.
-        
+
         Parameters
         ----------
         command: :class:`Command`
-            The command that is bound to the 
+            The command that is bound to the
             context.
         message: :class:`discii.Message`
             The message object to attach
             to the context.
-            
+
         Returns
         -------
         context: :class:`Context`
-            The context created from the message and 
+            The context created from the message and
             command.
         """
-        
+
         context = Context.from_message(message, command)
         return context
 
     async def on_command_error(self, context: Context, error: Any) -> None:
         """
-        Default error handler that dispatches the 
+        Default error handler that dispatches the
         errors to the error_handlers.
         """
-        
-        for handler in self.error_handlers["COMMAND"]:
-            await handler(context, error)
+
+        print(
+            f"Exception in :command:``{context.command.coro.__name__}``", file=sys.stderr
+        )
+        traceback.print_exc()
 
     async def process_commands(self, message: discii.Message):
         """
         Processes a command from a message object.
-        
+
         Parameters
         ----------
         message: :class:`discii.Message`
             The message object.
         """
-        
+
         command = self._get_command(message.text)
         if command is None:
             return
@@ -156,6 +184,6 @@ class Bot(discii.Client):
         args = self._get_args(command, message_args) or ()
 
         try:
-            await context.execute(*args)
+            await context.execute(context, *args)
         except Exception as e:
             await self.on_command_error(context, e)

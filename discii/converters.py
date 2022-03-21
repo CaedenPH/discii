@@ -21,7 +21,7 @@ def _event_to_object(name: str, data: Dict[Any, Any], _state: "ClientState") -> 
         return None
 
     if isinstance(converter, dict):
-        state = converter["f"](*converter["a"])
+        states = (converter["f"](*converter["a"]),)
     else:
-        state = converter(payload=data, state=_state)
-    return (state,)
+        states = (converter(payload=data, state=_state),)
+    return states
