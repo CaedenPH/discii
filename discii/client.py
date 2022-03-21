@@ -93,10 +93,8 @@ class Client:
         """
 
         state = self._get_state()
-        state = _event_to_object(name, data, state)
-        if state is None:
-            return ()
-        return state
+        event_object = _event_to_object(name, data, state) or ()
+        return event_object
 
     async def _run_event(
         self, coro: Callable[..., Coroutine[Any, Any, Any]], *args, **kwargs
@@ -139,6 +137,11 @@ class Client:
 
         if name not in self.events:
             return
+
+        event = getattr(self, "on_" + name.lower(), None)
+        if event is not None:
+            args = self._parse_event_data(name, data)
+            self.loop.create_task(self._run_event(event, *args))
 
         for coro in self.events[name]:
             args = (
