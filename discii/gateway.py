@@ -153,7 +153,7 @@ class DiscordWebSocket:
         )
 
     async def _cache_event(self, name: str, data: Dict[Any, Any]) -> None:
-        events: Dict[str, Any] = {
+        events: Dict[str, Dict[str, Any]] = {
             "GUILD_CREATE": {"o": Guild, "d": data, "f": self.cache.add_guild},
             "MESSAGE_CREATE": {"o": Message, "d": data, "f": self.cache.add_message},
             "READY": {"o": User, "d": data.get("user"), "f": self.cache.set_bot_user},
