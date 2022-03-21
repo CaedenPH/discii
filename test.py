@@ -1,14 +1,25 @@
 import os
 import asyncio
+import discii
 
 from dotenv import load_dotenv
 from discii import commands
 
-bot = commands.Bot(prefixes=["."])
 
-# @bot.on("MESSAGE_CREATE")
-# async def message_create(message: discii.Message):
-#     print(message)
+class TestBot(commands.Bot):
+    def __init__(self) -> None:
+        super().__init__(prefixes=["."])
+
+    async def on_message_create(self, message: discii.Message):
+        print(message)
+
+
+bot = TestBot()
+
+
+@bot.on("MESSAGE_CREATE")
+async def message_create(message: discii.Message):
+    print(message)
 
 
 @bot.command(names=["ping"])
