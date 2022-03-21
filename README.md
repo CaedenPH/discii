@@ -1,5 +1,5 @@
 <div align='center'>
-  <img src = "assets/discii.png" width = "200" height="200">
+  <img src = "assets/discii.png" width = "400" height="200">
   <br>
 
   `discii` - the lightweight discord wrapper.
