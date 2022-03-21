@@ -8,6 +8,7 @@ import time
 from aiohttp import ClientWebSocketResponse, WSMsgType
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
+from . import __version__
 from .guild import Guild
 from .message import Message
 from .user import User
@@ -125,8 +126,8 @@ class DiscordWebSocket:
                     "intents": 32767,
                     "properties": {
                         "$os": sys.platform,
-                        "$browser": "my_library",
-                        "$device": "my_library",
+                        "$browser": f"Discii {__version__}",
+                        "$device": f"Discii {__version__}",
                     },
                 },
             }
@@ -153,15 +154,14 @@ class DiscordWebSocket:
 
     async def _cache_event(self, name: str, data: Dict[Any, Any]) -> None:
         events: Dict[str, Any] = {
-            "GUILD_CREATE": {"o": Guild, "f": self.cache.add_guild},
-            "MESSAGE_CREATE": {"o": Message, "f": self.cache.add_message},
+            "GUILD_CREATE": {"o": Guild, "d": data, "f": self.cache.add_guild},
+            "MESSAGE_CREATE": {"o": Message, "d": data, "f": self.cache.add_message},
             "READY": {"o": User, "d": data.get("user"), "f": self.cache.set_bot_user},
         }
 
         if name in events:
-            dict = events[name]
-            obj = dict["o"](payload=dict.get("d", data), state=self.state)
-            dict["f"](obj)
+            obj, data, func = events[name].values()
+            func(obj(payload=data, state=self.state))
 
         if name == "GUILD_CREATE":
             await self._request_guild_members(data["id"])
