@@ -5,6 +5,7 @@ import traceback
 from typing import TypeVar, Tuple, Optional, List, Dict, Coroutine, Callable, Any
 
 from .core import Command, Context
+from .errors import InvalidArgumentType, NotEnoughArguments
 
 
 # fmt: off
@@ -22,7 +23,7 @@ class Bot(discii.Client):
     A bot that handles commands and slash
     command interactions.
 
-    Attributes
+    Parameters
     ----------
     prefix: :class:`List[str]`
         The prefix that the bot listens to
@@ -39,7 +40,19 @@ class Bot(discii.Client):
         self._all_commands: Dict[str, Command] = {}
 
     def command(self, *, names: List[str], enforce_types: bool = False) -> Any:
-        """ """
+        """
+        A decorator that registers commands
+        to the bot.
+        
+        Parameters
+        ----------
+        names: :class:`List[str]`
+            The names that the command is
+            invoked by.
+        enforce_types: :class:`bool`
+            Whether or not to enforce types
+            when calling the function
+        """
 
         def inner(coro: Coro) -> Coro:
             coro._enforce_types = enforce_types
@@ -74,7 +87,7 @@ class Bot(discii.Client):
                 if not command.args[c]["optional"]
             ]
         ):
-            return None  # TODO: raise error
+            raise NotEnoughArguments
 
         args = []
 
@@ -83,19 +96,56 @@ class Bot(discii.Client):
                 _type = command.args[c]["type"]
                 args.append(_type(m))
             except Exception:
-                return None  # TODO: raise error
+                raise InvalidArgumentType
 
         return args
+    
+     async def _message_create(self, message: discii.Message) -> None:
+        await self.process_commands(message)
 
     def get_context(self, command: Command, message: discii.Message) -> Context:
+        """
+        Returns a context instance from a 
+        message and command object.
+        
+        Parameters
+        ----------
+        command: :class:`Command`
+            The command that is bound to the 
+            context.
+        message: :class:`discii.Message`
+            The message object to attach
+            to the context.
+            
+        Returns
+        -------
+        context: :class:`Context`
+            The context created from the message and 
+            command.
+        """
+        
         context = Context.from_message(message, command)
         return context
 
     async def on_command_error(self, context: Context, error: Any) -> None:
+        """
+        Default error handler that dispatches the 
+        errors to the error_handlers.
+        """
+        
         for handler in self.error_handlers["COMMAND"]:
             await handler(context, error)
 
     async def process_commands(self, message: discii.Message):
+        """
+        Processes a command from a message object.
+        
+        Parameters
+        ----------
+        message: :class:`discii.Message`
+            The message object.
+        """
+        
         command = self._get_command(message.text)
         if command is None:
             return
@@ -109,6 +159,3 @@ class Bot(discii.Client):
             await context.execute(*args)
         except Exception as e:
             await self.on_command_error(context, e)
-
-    async def _message_create(self, message: discii.Message) -> None:
-        await self.process_commands(message)
