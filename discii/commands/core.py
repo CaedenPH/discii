@@ -1,9 +1,11 @@
 import inspect
 import discii
-import discii.abc as abc
+import discii.abc as _abc
 
-from typing import Dict, List, Coroutine, Callable, Any
+from typing import TYPE_CHEKCING, Dict, List, Coroutine, Callable, Any
 
+if TYPE_CHECKING:
+    from discii.state import ClientState 
 
 # fmt: off
 __all__ = (
@@ -31,21 +33,56 @@ def _parse_args(
 
 
 class Command:
-    def __init__(self, coro, *, names: List[str]) -> None:
+     """
+     Represents a command.
+     
+     Parameters
+     ----------
+     coro: :class:`Callable[..., Coroutine[Any, Any, Any]]`
+        The coroutine function that is 
+        bound to the command. Similiar to 
+        event bindings.
+     names: :class:`List[str]`
+        The names that the command is invokable 
+        from.
+     """
+        
+    def __init__(self, coro: Callable[..., Coroutine[Any, Any, Any]], *, names: List[str]) -> None:
         self.coro = coro
         self.args: Dict[str, Dict[str, Any]] = _parse_args(coro)
         self.names = names
 
 
-class Context(abc.Messageable, abc.Repliable):
+class Context(_abc.Messageable, _abc.Repliable):
+    """
+    Represents a `Context` object.
+    
+    Parameters
+    ----------
+    message: :class:`discii.Message`
+        The message object that is bound 
+        to the context instance.
+    command: :class:`Command`
+        The command bound to the context
+        instance.
+    
+    Attributes
+    ----------
+    _state: :class:`ClientState`
+        The client state which methods can be 
+        called off of.  
+    """
+    _state: "ClientState"
+        
+        
     def __init__(self, *, message: discii.Message, command: Command) -> None:
         self.command = command
         self.message = message
-        self._state = message._state
 
     @classmethod
     def from_message(cls, message: discii.Message, command: Command):
-        context = cls(command=command, message=message)
+        context = cls(message=message, command=command)
+        context._state = message._state
         return context
 
     async def _get_channel_id(self) -> int:
