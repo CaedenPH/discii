@@ -89,6 +89,24 @@
 >     asyncio.run(bot.start(os.environ["BOT_TOKEN"]))
 > ```
 
+**Example subclassed Client**:
+> ```py
+> import os
+> import asyncio
+> import discii
+>
+> from dotenv import load_dotenv
+>
+> class MyClient(discii.Client):
+>     async def on_message_create(self, message: discii.Message): # the same as registering an event, just add on_
+>         await message.reply("Hello!")
+>
+> client = MyClient()
+>
+> if __name__ == "__main__":
+>     load_dotenv()
+>     asyncio.run(client.start(os.environ["BOT_TOKEN"]))
+
 **Event list**:
 - `READY`
   args: `None`
